@@ -2,11 +2,8 @@
 Test compositional decorator functionality (@private @staticmethod etc.)
 """
 import pytest
-import sys
-import os
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from bouncer_refactored import private, protected, public, friend
+from bouncer import private, protected, public, friend
 
 @pytest.mark.composition
 @pytest.mark.cpp_semantics

@@ -6,8 +6,8 @@ import sys
 import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from bouncer_refactored import private, protected, public
-from bouncer_refactored.core import InheritanceType
+from bouncer import private, protected, public
+from bouncer.core import InheritanceType
 
 @pytest.mark.inheritance
 @pytest.mark.cpp_semantics
@@ -45,7 +45,7 @@ class TestCppInheritanceSemantics:
     
     def test_private_inheritance_semantics(self):
         """Test that private inheritance blocks external access to base class methods"""
-        from bouncer_refactored.utils.implicit import apply_implicit_access_control
+        from bouncer.utils.implicit import apply_implicit_access_control
         class Base:
             def public_method(self):
                 return "base_public"

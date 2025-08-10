@@ -13,7 +13,7 @@ import os
 # Add the bouncer_refactored module to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from bouncer_refactored import private, protected, public
+from bouncer import private, protected, public
 
 
 class TestPropertySetterAccessControl:
@@ -142,21 +142,16 @@ class TestMultipleDecoratorConflicts:
                 def conflicted_method(self):
                     return 'data'
     
-    def test_same_decorator_twice_allowed(self):
-        """Test that applying the same decorator twice is allowed"""
+    def test_same_decorator_twice_not_allowed(self):
+        """Test that applying the same decorator twice raises an error"""
         
-        # This should not raise an error
-        class TestClass:
-            @private
-            @private
-            def double_private(self):
-                return 'data'
-        
-        # Verify the method works correctly
-        obj = TestClass()
-        # External access should still be blocked
-        with pytest.raises(PermissionError):
-            obj.double_private()
+        # This should raise an error now due to duplicate decorator validation
+        with pytest.raises(ValueError, match="Duplicate access level decorators"):
+            class TestClass:
+                @private
+                @private
+                def double_private(self):
+                    return 'data'
     
     def test_multiple_conflicts_with_staticmethod(self):
         """Test that conflicts are detected even with @staticmethod"""

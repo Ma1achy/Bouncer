@@ -2,7 +2,6 @@
 Base class for access control decorators using Template Method pattern
 """
 import inspect
-from typing import Callable
 from ..core import AccessLevel, InheritanceType
 from ..descriptors import DescriptorFactory
 
@@ -18,7 +17,21 @@ class AccessControlDecorator:
         if len(args) == 0:
             return self._create_parameterized_decorator()
         elif len(args) == 1:
-            return self._handle_single_argument(args[0])
+            arg = args[0]
+            if isinstance(arg, type):
+                # This is a class - we need to check if it's bare decoration or inheritance
+                if self._is_bare_class_decoration():
+                    # This is invalid bare decoration like @private \n class Foo:
+                    raise ValueError(
+                        f"@{self._access_level.value} cannot be used as a class decorator without arguments. "
+                        f"Use @{self._access_level.value}(BaseClass) for {self._access_level.value} inheritance from BaseClass, "
+                        f"or apply @{self._access_level.value} to individual methods instead."
+                    )
+                else:
+                    # This is valid - @private(BaseClass) called, now applying to derived class
+                    return self._handle_class_decoration(arg)
+            else:
+                return self._apply_to_function(arg)
         else:
             return self._handle_multiple_arguments(args)
     
@@ -27,13 +40,6 @@ class AccessControlDecorator:
         def decorator(func):
             return self._apply_to_function(func)
         return decorator
-    
-    def _handle_single_argument(self, arg):
-        """Handle single argument (direct decoration or inheritance)"""
-        if isinstance(arg, type):
-            return self._handle_class_decoration(arg)
-        else:
-            return self._apply_to_function(arg)
     
     def _handle_multiple_arguments(self, args):
         """Handle multiple arguments (inheritance from multiple bases)"""
@@ -50,7 +56,7 @@ class AccessControlDecorator:
     
     def _handle_class_decoration(self, cls):
         """Handle class decoration (inheritance)"""
-        # For now, allow all class decoration and create inheritance
+        # If we get here, it's valid inheritance decoration
         return self._create_inheritance_decorator([cls])
     
     def _create_inheritance_decorator(self, base_classes):
@@ -91,16 +97,29 @@ class AccessControlDecorator:
         if hasattr(func, '__call__') and not hasattr(func, 'func'):
             func._access_level = self._access_level.value
     
-    def _is_bare_class_decoration(self, cls):
+    def _is_bare_class_decoration(self):
         """Check if this is bare class decoration (invalid)"""
-        frame = inspect.currentframe()
         try:
-            caller_frame = frame.f_back
-            if caller_frame and cls.__name__ not in caller_frame.f_locals:
-                return True
-        finally:
-            del frame
-        return False
+            # Use inspect.stack() to get reliable frame information
+            stack = inspect.stack()
+            
+            # Look for the decorator application in the stack
+            # We skip the first few frames which are internal to our decorator
+            for frame_info in stack[3:8]:  # Check a reasonable range of frames
+                if frame_info.code_context:
+                    line = frame_info.code_context[0].strip()
+                    # Look for patterns like "@private" without parentheses
+                    decorator_name = f"@{self._access_level.value}"
+                    if line.startswith(decorator_name) and "(" not in line:
+                        return True  # Bare decoration detected
+                    elif f"@{self._access_level.value}(" in line:
+                        return False  # Inheritance decoration detected
+            
+            # If we can't determine from the stack, assume it's valid (safer)
+            return False
+        except Exception:
+            # If anything goes wrong with stack inspection, assume valid
+            return False
     
     def _apply_implicit_access_control(self, cls):
         """Apply implicit access control based on naming conventions"""

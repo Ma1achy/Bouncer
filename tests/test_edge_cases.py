@@ -6,8 +6,8 @@ import sys
 import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from bouncer_refactored import private, protected, public
-from bouncer_refactored.system.access_control import get_access_control_system
+from bouncer import private, protected, public
+from bouncer.system.access_control import get_access_control_system
 
 @pytest.mark.edge_cases
 @pytest.mark.cpp_semantics

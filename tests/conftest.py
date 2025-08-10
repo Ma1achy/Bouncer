@@ -2,13 +2,8 @@
 Pytest configuration and fixtures for C++ semantics testing
 """
 import pytest
-import sys
-import os
 
-# Add parent directory to path for testing the refactored bouncer
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
-from bouncer_refactored import reset_system
+from bouncer import reset_system
 
 @pytest.fixture(autouse=True)
 def reset_bouncer_system():
@@ -20,7 +15,7 @@ def reset_bouncer_system():
 @pytest.fixture
 def sample_classes():
     """Provide sample classes for testing"""
-    from bouncer_refactored import private, protected, public
+    from bouncer import private, protected, public
     
     class Base:
         @private
