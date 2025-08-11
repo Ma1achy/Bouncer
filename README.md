@@ -642,13 +642,13 @@ apply_implicit_access_control(SecureClass)
 
 obj = SecureClass()
 
-# ✅ Internal access works
+# Internal access works
 result = obj.public_access()  # "secret data"
 
-# ❌ Direct access blocked (AttributeError)
+# Direct access blocked (AttributeError)
 # obj.__private_method()  # AttributeError: no attribute '__private_method'
 
-# ❌ Name mangling bypass blocked (PermissionError)  
+# Name mangling bypass blocked (PermissionError)  
 # obj._SecureClass__private_method()  # PermissionError: Access denied to private method
 ```
 
@@ -674,12 +674,12 @@ apply_implicit_access_control(DataStore)
 
 store = DataStore()
 processor = AuthorizedProcessor()
-result = processor.process(store)  # ✅ Works - friend access allowed
+result = processor.process(store)  # Works - friend access allowed
 
 # Unauthorized access still blocked
 class UnauthorizedClass:
     def hack(self, store):
-        return store._DataStore__private_data()  # ❌ PermissionError
+        return store._DataStore__private_data()  # PermissionError
 
 unauthorized = UnauthorizedClass()
 # unauthorized.hack(store)  # PermissionError: Access denied
