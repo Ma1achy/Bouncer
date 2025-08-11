@@ -4,6 +4,7 @@ Test compositional decorator functionality (@private @staticmethod etc.)
 import pytest
 
 from limen import private, protected, public, friend
+from limen.exceptions import PermissionDeniedError
 
 @pytest.mark.composition
 @pytest.mark.cpp_semantics
@@ -31,11 +32,11 @@ class TestCompositionalDecorators:
         
         # Derived class access should be blocked
         derived_obj = Derived()
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             derived_obj.try_call_private_static()
         
         # External access should be blocked
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             TestClass.private_static_method()
     
     def test_protected_staticmethod_composition(self):
@@ -62,7 +63,7 @@ class TestCompositionalDecorators:
         assert derived_obj.call_protected_static() == "protected_static_result"
         
         # External access should be blocked
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             TestClass.protected_static_method()
     
     def test_private_classmethod_composition(self):
@@ -86,11 +87,11 @@ class TestCompositionalDecorators:
         assert TestClass.internal_caller() == "private_class_result_TestClass"
         
         # Derived class access should be blocked (C++ semantics)
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             Derived.try_call_private_class()
         
         # External access should be blocked
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             TestClass.private_class_method()
     
     def test_protected_classmethod_composition(self):
@@ -117,7 +118,7 @@ class TestCompositionalDecorators:
         assert Derived.call_protected_class() == "protected_class_result_Derived"
         
         # External access should be blocked
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             TestClass.protected_class_method()
     
     def test_private_property_composition(self):
@@ -141,11 +142,11 @@ class TestCompositionalDecorators:
         
         # Derived class access should be blocked
         derived_obj = Derived()
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             derived_obj.try_access_private_property()
         
         # External access should be blocked
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             _ = obj.private_property
     
     def test_protected_property_composition(self):
@@ -172,7 +173,7 @@ class TestCompositionalDecorators:
         assert derived_obj.access_protected_property() == "protected_property_result"
         
         # External access should be blocked
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             _ = obj.protected_property
     
     def test_multiple_decorators_preferred_order(self):
@@ -190,10 +191,10 @@ class TestCompositionalDecorators:
                 return "result2"
         
         # Both should be blocked for external access
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             TestClass1.method1()
         
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             TestClass2.method2()
         
         # Note: While @staticmethod @private may work, @private @staticmethod is the preferred order
@@ -220,12 +221,12 @@ class TestCompositionalDecorators:
                 results = {}
                 try:
                     results['private'] = self.private_instance_method()
-                except PermissionError:
+                except PermissionDeniedError:
                     results['private'] = 'BLOCKED'
                 
                 try:
                     results['protected'] = self.protected_instance_method()
-                except PermissionError:
+                except PermissionDeniedError:
                     results['protected'] = 'BLOCKED'
                 
                 return results

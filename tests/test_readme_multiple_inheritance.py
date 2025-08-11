@@ -2,6 +2,7 @@
 """Test the complex multiple inheritance examples from the README."""
 
 from limen import protected, private
+from limen.exceptions import PermissionDeniedError
 
 def test_qux_multiple_inheritance():
     """Test the @protected(Foo, Bar) class Qux example."""
@@ -51,14 +52,14 @@ def test_qux_multiple_inheritance():
     # External access should be blocked
     try:
         qux.foo_public()
-        assert False, "Should have raised PermissionError"
-    except PermissionError:
+        assert False, "Should have raised PermissionDeniedError"
+    except PermissionDeniedError:
         pass  # Expected
     
     try:
         qux.bar_public()
-        assert False, "Should have raised PermissionError"
-    except PermissionError:
+        assert False, "Should have raised PermissionDeniedError"
+    except PermissionDeniedError:
         pass  # Expected
 
 def test_advanced_data_service():
@@ -132,20 +133,20 @@ def test_advanced_data_service():
     # External access should be completely blocked
     try:
         service.connect()
-        assert False, "Should have raised PermissionError"
-    except PermissionError:
+        assert False, "Should have raised PermissionDeniedError"
+    except PermissionDeniedError:
         pass  # Expected
         
     try:
         service.get_cache()
-        assert False, "Should have raised PermissionError"  
-    except PermissionError:
+        assert False, "Should have raised PermissionDeniedError"  
+    except PermissionDeniedError:
         pass  # Expected
         
     try:
         service.log_info("test")
-        assert False, "Should have raised PermissionError"
-    except PermissionError:
+        assert False, "Should have raised PermissionDeniedError"
+    except PermissionDeniedError:
         pass  # Expected
 
 if __name__ == "__main__":

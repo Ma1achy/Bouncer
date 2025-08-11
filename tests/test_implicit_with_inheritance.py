@@ -4,6 +4,7 @@ Test implicit access control with inheritance decorators
 """
 
 from limen import private, protected, public
+from limen.exceptions import PermissionDeniedError
 
 print("Testing Implicit Access Control with Inheritance...\n")
 
@@ -40,21 +41,21 @@ base_obj = Base()
 try:
     result = base_obj.implicit_public_method()
     print(f"  implicit_public_method: {result} (should work)")
-except PermissionError as e:
+except PermissionDeniedError as e:
     print(f"  implicit_public_method: BLOCKED - {e}")
 
 # Test implicit protected (should work - no implicit control applied yet)
 try:
     result = base_obj._implicit_protected_method()
     print(f"  _implicit_protected_method: {result} (should work - no implicit control yet)")
-except PermissionError as e:
+except PermissionDeniedError as e:
     print(f"  _implicit_protected_method: BLOCKED - {e}")
 
 # Test explicit protected (should be blocked)
 try:
     result = base_obj.explicit_protected_method()
     print(f"  explicit_protected_method: {result} (should be blocked)")
-except PermissionError as e:
+except PermissionDeniedError as e:
     print(f"  explicit_protected_method: BLOCKED - {e}")
 
 print("\n=== Now applying @protected(Base) inheritance decorator ===")
@@ -113,13 +114,13 @@ print("Implicit methods:")
 try:
     result = derived_obj.implicit_public_method()
     print(f"  ❌ implicit_public_method: {result} (should be blocked due to protected inheritance)")
-except PermissionError as e:
+except PermissionDeniedError as e:
     print(f"  ✅ implicit_public_method: BLOCKED - {e}")
 
 try:
     result = derived_obj._implicit_protected_method()
     print(f"  ❌ _implicit_protected_method: {result} (should be blocked)")
-except PermissionError as e:
+except PermissionDeniedError as e:
     print(f"  ✅ _implicit_protected_method: BLOCKED - {e}")
 
 # Test external access to explicit methods
@@ -127,13 +128,13 @@ print("Explicit methods:")
 try:
     result = derived_obj.explicit_public_method()
     print(f"  ❌ explicit_public_method: {result} (should be blocked due to protected inheritance)")
-except PermissionError as e:
+except PermissionDeniedError as e:
     print(f"  ✅ explicit_public_method: BLOCKED - {e}")
 
 try:
     result = derived_obj.explicit_protected_method()
     print(f"  ❌ explicit_protected_method: {result} (should be blocked)")
-except PermissionError as e:
+except PermissionDeniedError as e:
     print(f"  ✅ explicit_protected_method: BLOCKED - {e}")
 
 print("\n=== Key Questions ===")

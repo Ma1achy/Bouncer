@@ -4,6 +4,7 @@ Base class for access control decorators using Template Method pattern
 import inspect
 from ..core import AccessLevel, InheritanceType
 from ..descriptors import DescriptorFactory
+from ..exceptions import DecoratorConflictError, DecoratorUsageError
 
 
 class AccessControlDecorator:
@@ -43,7 +44,10 @@ class AccessControlDecorator:
         if all(isinstance(arg, type) for arg in args):
             return self._create_inheritance_decorator(args)
         else:
-            raise ValueError(f"All arguments to @{self._access_level.value} must be classes for inheritance")
+            raise DecoratorUsageError(
+                self._access_level.value, 
+                "invalid inheritance arguments"
+            )
     
     def _apply_to_function(self, func):
         """Apply access control to a function"""
@@ -59,14 +63,52 @@ class AccessControlDecorator:
         
         return DescriptorFactory.create_method_descriptor(func, self._access_level)
     
+    def _find_available_classes(self):
+        """Find available classes in the current scope for suggestions"""
+        import inspect
+        
+        try:
+            # Get the frame where the decorator was applied
+            frame = inspect.currentframe()
+            # Go up through the frames to find the module/class definition context
+            available_classes = []
+            
+            # Check multiple frame levels to find class definitions
+            current_frame = frame.f_back
+            for _ in range(5):  # Check up to 5 frames up
+                if current_frame:
+                    # Check both globals and locals
+                    for namespace in [current_frame.f_globals, current_frame.f_locals]:
+                        for name, obj in namespace.items():
+                            if (isinstance(obj, type) and 
+                                not name.startswith('_') and 
+                                name not in ['Exception', 'BaseException'] and
+                                'limen' not in str(obj.__module__ or '') and
+                                name not in ['AccessLevel', 'InheritanceType', 'AccessControlDecorator']):
+                                available_classes.append(name)
+                    current_frame = current_frame.f_back
+                else:
+                    break
+            
+            # Remove duplicates and sort
+            return sorted(list(set(available_classes)))[:3]  # Limit to 3 suggestions
+            
+        except Exception:
+            return ["BaseClass"]  # Fallback suggestion
+
     def _handle_implicit_class_decoration(self, cls):
         """Handle bare class decoration (should raise error for now)"""
         # For now, we don't support bare class decoration like @private \n class Foo:
         # This would be for implicit access control on the class itself
         # But the user's requirements show this should be an error case
-        raise ValueError(
-            f"@{self._access_level.value} cannot be used as a class decorator without arguments. "
-            f"Use @{self._access_level.value}(BaseClass) for inheritance, or apply the decorator to individual methods."
+        
+        # Try to find available classes in the same scope for suggestions
+        available_classes = self._find_available_classes()
+        
+        raise DecoratorUsageError(
+            self._access_level.value,
+            "bare class",
+            {"available_classes": available_classes}
         )
     
     def _handle_class_decoration(self, cls):
@@ -81,20 +123,19 @@ class AccessControlDecorator:
         def decorator(derived_class):
             # Validate that this is actually being applied to a class
             if not isinstance(derived_class, type):
-                base_names = [base.__name__ for base in base_classes]
                 if callable(derived_class):
                     if hasattr(derived_class, '__qualname__') and '.' in derived_class.__qualname__:
                         target_type = "method"
                     else:
                         target_type = "function"
-                    raise ValueError(
-                        f"@{self._access_level.value}({', '.join(base_names)}) cannot be applied to {target_type}. "
-                        f"Inheritance decorators can only be applied to classes. "
-                        f"Use @{self._access_level.value} (without parentheses) for {target_type} access control."
+                    raise DecoratorUsageError(
+                        self._access_level.value, 
+                        target_type
                     )
                 else:
-                    raise ValueError(
-                        f"@{self._access_level.value}({', '.join(base_names)}) can only be applied to classes for inheritance."
+                    raise DecoratorUsageError(
+                        self._access_level.value,
+                        "non-class target"
                     )
             
             # Apply implicit access control to base classes first
@@ -120,14 +161,38 @@ class AccessControlDecorator:
         from ..utils.validation import validate_method_usage
         validate_method_usage(func, self._access_level.value)
 
+    def _get_method_name(self, func):
+        """Get the method name, handling different decorator types"""
+        if hasattr(func, '__name__'):
+            return func.__name__
+        elif isinstance(func, property):
+            return getattr(func.fget, '__name__', 'property_method')
+        elif isinstance(func, staticmethod):
+            return getattr(func.__func__, '__name__', 'static_method')
+        elif isinstance(func, classmethod):
+            return getattr(func.__func__, '__name__', 'class_method')
+        else:
+            return 'unknown_method'
+
+    def _detect_wrapper_decorators(self, func):
+        """Detect common wrapper decorators like @property, @staticmethod, @classmethod"""
+        wrapper_decorators = []
+        
+        if isinstance(func, property):
+            wrapper_decorators.append("property")
+        elif isinstance(func, staticmethod):
+            wrapper_decorators.append("staticmethod")
+        elif isinstance(func, classmethod):
+            wrapper_decorators.append("classmethod")
+        
+        return wrapper_decorators
+
     def _check_access_level_conflict(self, func):
         """Check for conflicting access level decorators"""
         from ..utils.descriptors import (
             get_access_level_from_descriptor, 
-            get_friend_flag_from_descriptor,
-            get_wrapper_info_from_descriptor
+            get_friend_flag_from_descriptor
         )
-        from ..utils.error_messages import format_decorator_conflict_message
         
         existing_level = get_access_level_from_descriptor(func)
         has_friend_flag = get_friend_flag_from_descriptor(func)
@@ -138,14 +203,18 @@ class AccessControlDecorator:
                 # Allow explicit access level to override or confirm the friend decorator's default
                 return
             
-            # Provide more specific error messages based on the wrapper type
-            wrapper_info = get_wrapper_info_from_descriptor(func)
+            # Try to detect wrapper decorators for better suggestions
+            wrapper_decorators = self._detect_wrapper_decorators(func)
             
-            error_message = format_decorator_conflict_message(
-                existing_level.value, self._access_level.value, 
-                getattr(func, '__name__', 'unknown'), wrapper_info
+            # Get a better method name
+            method_name = self._get_method_name(func)
+            
+            raise DecoratorConflictError(
+                existing_level.value, 
+                self._access_level.value, 
+                method_name,
+                {"wrapper_decorators": wrapper_decorators, "func_obj": func}
             )
-            raise ValueError(error_message)
 
     def _is_bare_class_decoration(self):
         """Check if this is bare class decoration (invalid)"""

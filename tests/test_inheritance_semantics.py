@@ -4,6 +4,7 @@ Test C++ style inheritance semantics
 """
 
 from limen import private, protected, public
+from limen.exceptions import PermissionDeniedError
 from limen.utils.implicit import apply_implicit_access_control
 
 print("Testing C++ Style Inheritance Semantics...\n")
@@ -77,28 +78,28 @@ print("\n=== External Access (from outside) ===")
 try:
     result = obj.public_method()
     print(f"  ❌ public_method: {result} (should be blocked due to protected inheritance)")
-except PermissionError as e:
+except PermissionDeniedError as e:
     print(f"  ✅ public_method: Correctly blocked - {e}")
 
 # Test external access to originally protected method (should remain protected)
 try:
     result = obj._protected_method()
     print(f"  ❌ _protected_method: {result} (should be blocked)")
-except PermissionError as e:
+except PermissionDeniedError as e:
     print(f"  ✅ _protected_method: Correctly blocked - {e}")
 
 # Test external access to explicit public (should become protected)
 try:
     result = obj.explicit_public()
     print(f"  ❌ explicit_public: {result} (should be blocked due to protected inheritance)")
-except PermissionError as e:
+except PermissionDeniedError as e:
     print(f"  ✅ explicit_public: Correctly blocked - {e}")
 
 # Test external access to explicit protected (should remain protected)
 try:
     result = obj.explicit_protected()
     print(f"  ❌ explicit_protected: {result} (should be blocked)")
-except PermissionError as e:
+except PermissionDeniedError as e:
     print(f"  ✅ explicit_protected: Correctly blocked - {e}")
 
 print("\n=== Test 2: Compare with Normal (Public) Inheritance ===")
@@ -127,13 +128,13 @@ print("=== External Access (normal inheritance) ===")
 try:
     result = obj2.public_method()
     print(f"  ✅ public_method: {result} (accessible with normal inheritance)")
-except PermissionError as e:
+except PermissionDeniedError as e:
     print(f"  ❌ public_method: Should be accessible - {e}")
 
 try:
     result = obj2.explicit_public()
     print(f"  ✅ explicit_public: {result} (accessible with normal inheritance)")
-except PermissionError as e:
+except PermissionDeniedError as e:
     print(f"  ❌ explicit_public: Should be accessible - {e}")
 
 print("\n=== Summary ===")

@@ -7,6 +7,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from limen import private, protected, public
+from limen.exceptions import PermissionDeniedError
 from limen.core import InheritanceType
 
 @pytest.mark.inheritance
@@ -40,7 +41,7 @@ class TestCppInheritanceSemantics:
         assert derived_obj.public_method() == 'base_public'
         
         # External access to protected should be blocked
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             derived_obj.protected_method()
     
     def test_private_inheritance_semantics(self):
@@ -72,9 +73,9 @@ class TestCppInheritanceSemantics:
         assert results['public'] == 'base_public'
         assert results['protected'] == 'base_protected'
         # External access to base class methods should be blocked in private inheritance
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             obj.public_method()
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             obj._protected_method()
     
     def test_protected_inheritance_semantics(self):
@@ -119,10 +120,10 @@ class TestCppInheritanceSemantics:
         
         # External access should be blocked for all members
         # because public became protected through protected inheritance
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             derived_obj.public_method()  # Was public in base, now protected in derived
         
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             derived_obj.protected_method()  # Still protected
     
     def test_multiple_inheritance_with_access_control(self):
@@ -167,10 +168,10 @@ class TestCppInheritanceSemantics:
         assert results['base2_protected'] == 'base2_protected'
         
         # External access should be blocked due to inheritance types
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             multi_obj.base1_public()  # Private inheritance
         
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             multi_obj.base2_public()  # Protected inheritance
     
     def test_deep_inheritance_chain(self):
@@ -201,10 +202,10 @@ class TestCppInheritanceSemantics:
         assert results['parent'] == 'parent_protected'
         
         # External access should be blocked due to private inheritance from Parent
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             child_obj.grandparent_method()
         
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             child_obj.parent_method()
 
 
@@ -260,11 +261,11 @@ class TestInheritanceTypeEnforcement:
         
         # External access should differ based on inheritance type
         # Private inheritance - no external access to inherited methods
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             private_obj.public_method()
         
         # Protected inheritance - no external access to any inherited methods
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             protected_obj.public_method()
         
         # Public inheritance - external access to public methods should work

@@ -4,6 +4,7 @@ Pytest configuration and fixtures for C++ semantics testing
 import pytest
 
 from limen import reset_system
+from limen.exceptions import PermissionDeniedError
 
 @pytest.fixture(autouse=True)
 def reset_limen_system():
@@ -74,22 +75,22 @@ def sample_classes():
             
             try:
                 results['private_method'] = self.private_method()
-            except PermissionError:
+            except PermissionDeniedError:
                 results['private_method'] = 'BLOCKED'
             
             try:
                 results['private_static'] = self.private_static()
-            except PermissionError:
+            except PermissionDeniedError:
                 results['private_static'] = 'BLOCKED'
             
             try:
                 results['private_class'] = self.private_class()
-            except PermissionError:
+            except PermissionDeniedError:
                 results['private_class'] = 'BLOCKED'
             
             try:
                 results['private_prop'] = self.private_prop
-            except PermissionError:
+            except PermissionDeniedError:
                 results['private_prop'] = 'BLOCKED'
             
             return results

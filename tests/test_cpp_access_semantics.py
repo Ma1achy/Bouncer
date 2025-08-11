@@ -7,6 +7,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from limen import private, protected, public
+from limen.exceptions import PermissionDeniedError
 
 @pytest.mark.cpp_semantics
 @pytest.mark.access_control
@@ -46,7 +47,7 @@ class TestPrivateAccessSemantics:
         unrelated_obj = Unrelated()
         
         # External access should be blocked
-        with pytest.raises(PermissionError, match="Access denied to private method"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to private method"):
             base_obj.private_method()
     
     def test_private_static_method_inheritance_blocked(self, sample_classes):
@@ -55,7 +56,7 @@ class TestPrivateAccessSemantics:
         Derived = sample_classes['Derived']
         
         # Direct call from derived class should fail
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             Derived.private_static()
     
     def test_private_class_method_inheritance_blocked(self, sample_classes):
@@ -64,7 +65,7 @@ class TestPrivateAccessSemantics:
         Derived = sample_classes['Derived']
         
         # Direct call from derived class should fail
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             Derived.private_class()
     
     def test_private_property_inheritance_blocked(self, sample_classes):
@@ -73,7 +74,7 @@ class TestPrivateAccessSemantics:
         derived_obj = Derived()
         
         # Direct access from derived instance should fail
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             _ = derived_obj.private_prop
 
 
@@ -109,7 +110,7 @@ class TestProtectedAccessSemantics:
         base_obj = Base()
         
         # External access should be blocked
-        with pytest.raises(PermissionError, match="Access denied to protected method"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to protected method"):
             base_obj.protected_method()
     
     def test_protected_unrelated_class_blocked(self, sample_classes):
@@ -121,7 +122,7 @@ class TestProtectedAccessSemantics:
         unrelated_obj = Unrelated()
         
         # Unrelated class should not be able to access protected methods
-        with pytest.raises(PermissionError, match="Access denied to protected method"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to protected method"):
             base_obj.protected_method()
 
 

@@ -14,6 +14,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from limen import private, protected, public
+from limen.exceptions import PermissionDeniedError, DecoratorConflictError
 
 
 class TestPropertySetterAccessControl:
@@ -67,10 +68,10 @@ class TestPropertySetterAccessControl:
         obj = TestClass()
         
         # External access should be blocked for both getter and setter
-        with pytest.raises(PermissionError, match="Access denied to private property"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to private property"):
             _ = obj.secure_value
             
-        with pytest.raises(PermissionError, match="Access denied to private property"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to private property"):
             obj.secure_value = "hacked"
     
     def test_protected_property_setter_inheritance(self):
@@ -105,7 +106,7 @@ class TestPropertySetterAccessControl:
         assert obj.access_family_value() == "derived"
         
         # External access should be blocked
-        with pytest.raises(PermissionError, match="Access denied to protected property"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to protected property"):
             _ = obj.family_value
 
 
@@ -115,7 +116,7 @@ class TestMultipleDecoratorConflicts:
     def test_private_protected_conflict(self):
         """Test that @private @protected raises a conflict error"""
         
-        with pytest.raises(ValueError, match="Conflicting access level decorators"):
+        with pytest.raises(DecoratorConflictError, match="Conflicting access level decorators on.*\\(\\):.*already has"):
             class TestClass:
                 @private
                 @protected
@@ -125,7 +126,7 @@ class TestMultipleDecoratorConflicts:
     def test_protected_public_conflict(self):
         """Test that @protected @public raises a conflict error"""
         
-        with pytest.raises(ValueError, match="Conflicting access level decorators"):
+        with pytest.raises(DecoratorConflictError, match="Conflicting access level decorators on.*already has"):
             class TestClass:
                 @protected
                 @public
@@ -135,7 +136,7 @@ class TestMultipleDecoratorConflicts:
     def test_private_public_conflict(self):
         """Test that @private @public raises a conflict error"""
         
-        with pytest.raises(ValueError, match="Conflicting access level decorators"):
+        with pytest.raises(DecoratorConflictError, match="Conflicting access level decorators on.*already has"):
             class TestClass:
                 @private
                 @public
@@ -146,7 +147,7 @@ class TestMultipleDecoratorConflicts:
         """Test that applying the same decorator twice raises an error"""
         
         # This should raise an error now due to duplicate decorator validation
-        with pytest.raises(ValueError, match="Duplicate access level decorators"):
+        with pytest.raises(DecoratorConflictError, match="was applied to.*more than once"):
             class TestClass:
                 @private
                 @private
@@ -156,7 +157,7 @@ class TestMultipleDecoratorConflicts:
     def test_multiple_conflicts_with_staticmethod(self):
         """Test that conflicts are detected even with @staticmethod"""
         
-        with pytest.raises(ValueError, match="Conflicting access level decorators"):
+        with pytest.raises(DecoratorConflictError, match="Conflicting access level decorators on.*already has"):
             class TestClass:
                 @private
                 @protected
@@ -167,7 +168,7 @@ class TestMultipleDecoratorConflicts:
     def test_multiple_conflicts_with_property(self):
         """Test that conflicts are detected even with @property"""
         
-        with pytest.raises(ValueError, match="Conflicting access level decorators"):
+        with pytest.raises(DecoratorConflictError, match="Conflicting access level decorators on.*already has"):
             class TestClass:
                 @private
                 @protected
@@ -179,7 +180,7 @@ class TestMultipleDecoratorConflicts:
         """Test that decorator order doesn't matter for conflict detection"""
         
         # Test different orders
-        with pytest.raises(ValueError, match="Conflicting access level decorators"):
+        with pytest.raises(DecoratorConflictError, match="Conflicting access level decorators on.*already has"):
             class TestClass1:
                 @staticmethod
                 @private
@@ -187,7 +188,7 @@ class TestMultipleDecoratorConflicts:
                 def method1(self):
                     return 'data'
         
-        with pytest.raises(ValueError, match="Conflicting access level decorators"):
+        with pytest.raises(DecoratorConflictError, match="Conflicting access level decorators on.*already has"):
             class TestClass2:
                 @property
                 @protected

@@ -4,6 +4,7 @@ Final comprehensive test of implicit access control with inheritance
 """
 
 from limen import private, protected, public, friend
+from limen.exceptions import PermissionDeniedError
 
 print("🛡️ COMPREHENSIVE IMPLICIT ACCESS CONTROL TEST\n")
 
@@ -48,22 +49,22 @@ print(f"✅ Internal access works: {list(internal_results.keys())}")
 external_blocked = 0
 try:
     obj.public_method()
-except PermissionError:
+except PermissionDeniedError:
     external_blocked += 1
 
 try:
     obj._protected_method()
-except PermissionError:
+except PermissionDeniedError:
     external_blocked += 1
 
 try:
     obj.another_public()
-except PermissionError:
+except PermissionDeniedError:
     external_blocked += 1
 
 try:
     obj._another_protected()
-except PermissionError:
+except PermissionDeniedError:
     external_blocked += 1
 
 print(f"✅ External access blocked: {external_blocked}/4 methods correctly protected")
@@ -99,14 +100,14 @@ print("Testing explicit overrides:")
 try:
     result = obj2._explicit_public()
     print(f"❌ _explicit_public should be blocked due to protected inheritance: {result}")
-except PermissionError:
+except PermissionDeniedError:
     print("✅ _explicit_public correctly blocked (protected inheritance converts public to protected)")
 
 # explicit_private should be blocked (explicit @private)  
 try:
     result = obj2.explicit_private()
     print(f"❌ explicit_private should be blocked: {result}")
-except PermissionError:
+except PermissionDeniedError:
     print("✅ explicit_private correctly blocked")
 
 # ================================
@@ -148,7 +149,7 @@ secure_obj = SecureDerived()
 try:
     friend_results = authorized_function(secure_obj)
     print(f"✅ Friend function works: {list(friend_results.keys())}")
-except PermissionError as e:
+except PermissionDeniedError as e:
     print(f"Note: Friend function blocked due to protected inheritance: {e}")
     print("✅ This is correct - protected inheritance affects friend access too")
 
@@ -157,14 +158,14 @@ base_obj = SecureBase()
 try:
     friend_results = authorized_function(base_obj)
     print(f"✅ Friend function works on base class: {list(friend_results.keys())}")
-except PermissionError as e:
+except PermissionDeniedError as e:
     print(f"❌ Friend function should work on base class: {e}")
 
 # Unauthorized function should be blocked
 try:
     unauthorized_function(secure_obj)
     print("❌ Unauthorized function should be blocked")
-except PermissionError:
+except PermissionDeniedError:
     print("✅ Unauthorized function correctly blocked")
 
 # ================================

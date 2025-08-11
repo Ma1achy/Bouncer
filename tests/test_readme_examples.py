@@ -4,6 +4,7 @@ Test the README examples to ensure documentation accuracy
 """
 
 from limen import private, protected, public, friend
+from limen.exceptions import PermissionDeniedError
 from limen.utils.implicit import apply_implicit_access_control
 
 print("Testing README Documentation Examples...\n")
@@ -37,7 +38,7 @@ print(f"Withdraw successful: {result}")
 try:
     account._validate_transaction(50)
     print("ERROR: Should have blocked private access")
-except PermissionError:
+except PermissionDeniedError:
     print("SUCCESS: Private access correctly blocked")
 
 # Test 2: Implicit Access Control Example
@@ -81,7 +82,7 @@ for method_name, method_call in test_methods:
     try:
         method_call()
         print(f"ERROR: {method_name} should be blocked")
-    except PermissionError:
+    except PermissionDeniedError:
         blocked_count += 1
 
 print(f"SUCCESS: {blocked_count}/3 methods correctly blocked by protected inheritance")
@@ -155,7 +156,7 @@ for method_name, method_call in multi_test_methods:
     try:
         method_call()
         print(f"ERROR: {method_name} should be blocked")
-    except PermissionError:
+    except PermissionDeniedError:
         external_blocked += 1
 
 print(f"SUCCESS: {external_blocked}/4 methods correctly blocked by multiple inheritance")

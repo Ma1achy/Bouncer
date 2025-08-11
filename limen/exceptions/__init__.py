@@ -1,18 +1,16 @@
 """
 Exceptions module exports
 """
-from .access_errors import (
-    AccessControlError,
+from .limen_errors import (
+    LimenError,
     PermissionDeniedError,
     DecoratorConflictError,
-    InvalidDecoratorUsageError,
-    FriendshipError
+    DecoratorUsageError
 )
 
 __all__ = [
-    'AccessControlError',
+    'LimenError',
     'PermissionDeniedError',
     'DecoratorConflictError',
-    'InvalidDecoratorUsageError',
-    'FriendshipError'
+    'DecoratorUsageError'
 ]

@@ -2,6 +2,7 @@
 Test access modifiers applied to friend methods, staticmethods, and classmethods
 """
 import pytest
+from limen.exceptions import PermissionDeniedError
 from limen.decorators.friend_decorator import friend
 from limen.decorators.access_decorators import private, protected, public
 
@@ -72,7 +73,7 @@ class TestFriendMethodAccessModifiers:
         helper = Helper()
         
         # Protected friend method should be blocked for direct access
-        with pytest.raises(PermissionError, match="Access denied to protected method"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to protected method"):
             helper.protected_helper(target)
     
     def test_private_friend_method_same_class(self):
@@ -115,7 +116,7 @@ class TestFriendMethodAccessModifiers:
         helper = Helper()
         
         # Private friend method should be blocked for external access
-        with pytest.raises(PermissionError, match="Access denied to private method"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to private method"):
             helper.private_helper(target)
 
 
@@ -186,7 +187,7 @@ class TestFriendStaticMethodAccessModifiers:
         target = Target()
         
         # Protected friend staticmethod should be blocked for direct access
-        with pytest.raises(PermissionError, match="Access denied to protected static method"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to protected static method"):
             Helper.protected_static_helper(target)
     
     def test_private_friend_staticmethod_same_class(self):
@@ -230,7 +231,7 @@ class TestFriendStaticMethodAccessModifiers:
         target = Target()
         
         # Private friend staticmethod should be blocked for external access
-        with pytest.raises(PermissionError, match="Access denied to private static method"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to private static method"):
             Helper.private_static_helper(target)
 
 
@@ -283,7 +284,7 @@ class TestFriendClassMethodAccessModifiers:
         # Protected friend classmethod should work via inheritance
         # Note: This currently fails due to friend access not working through classmethod inheritance
         # This is a known limitation - the friend relationship doesn't propagate through inheritance chains
-        with pytest.raises(PermissionError, match="Access denied to private method"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to private method"):
             DerivedHelper.use_protected_classmethod(target)
     
     def test_protected_friend_classmethod_blocked_direct(self):
@@ -303,7 +304,7 @@ class TestFriendClassMethodAccessModifiers:
         target = Target()
         
         # Protected friend classmethod should be blocked for direct access
-        with pytest.raises(PermissionError, match="Access denied to protected class method"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to protected class method"):
             Helper.protected_class_helper(target)
     
     def test_private_friend_classmethod_same_class(self):
@@ -347,7 +348,7 @@ class TestFriendClassMethodAccessModifiers:
         target = Target()
         
         # Private friend classmethod should be blocked for external access
-        with pytest.raises(PermissionError, match="Access denied to private class method"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to private class method"):
             Helper.private_class_helper(target)
 
 
@@ -453,9 +454,9 @@ class TestFriendDecoratorCombinations:
         assert results['private'] == "private: secret"
         
         # Protected friend should be blocked for direct access
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             helper.protected_friend(target)
         
         # Private friend should be blocked for direct access
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             helper.private_friend(target)

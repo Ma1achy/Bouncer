@@ -4,6 +4,7 @@ Test various inheritance patterns and friend function functionality
 """
 
 from limen import private, protected, public, friend
+from limen.exceptions import PermissionDeniedError
 
 print("Testing inheritance patterns...\n")
 
@@ -30,7 +31,7 @@ try:
     try:
         obj.base1_method()
         print("❌ External access to base1_method should be blocked")
-    except PermissionError:
+    except PermissionDeniedError:
         print("✅ External access to base1_method correctly blocked")
         
 except Exception as e:
@@ -60,7 +61,7 @@ try:
     try:
         obj.protected_method()
         print("❌ External access to protected_method should be blocked")
-    except PermissionError:
+    except PermissionDeniedError:
         print("✅ External access to protected_method correctly blocked")
         
 except Exception as e:
@@ -105,7 +106,7 @@ try:
     try:
         unauthorized_attempt(box)
         print("❌ Unauthorized function should be blocked")
-    except PermissionError:
+    except PermissionDeniedError:
         print("✅ Unauthorized function correctly blocked")
         
 except Exception as e:
@@ -144,21 +145,21 @@ try:
     try:
         public_result = obj.public_method()
         print(f"✅ External public access: {public_result}")
-    except PermissionError:
+    except PermissionDeniedError:
         print("❌ Public method should be accessible externally")
     
     # Test external access to protected (should be blocked)
     try:
         obj._protected_method()
         print("❌ External protected access should be blocked")
-    except PermissionError:
+    except PermissionDeniedError:
         print("✅ External protected access correctly blocked")
     
     # Test external access to private (should be blocked)
     try:
         obj._ImplicitExample__private_method()  # Python name mangling
         print("❌ External private access should be blocked")
-    except PermissionError:
+    except PermissionDeniedError:
         print("✅ External private access correctly blocked")
         
 except Exception as e:
@@ -188,14 +189,14 @@ try:
     try:
         result = obj._explicitly_public()
         print(f"✅ Explicit @public override: {result}")
-    except PermissionError:
+    except PermissionDeniedError:
         print("❌ Explicit @public should override implicit protected")
     
     # Test that explicit @private overrides implicit public
     try:
         obj.normally_public()
         print("❌ Explicit @private should block access")
-    except PermissionError:
+    except PermissionDeniedError:
         print("✅ Explicit @private correctly overrides implicit public")
         
 except Exception as e:

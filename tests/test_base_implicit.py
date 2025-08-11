@@ -4,6 +4,7 @@ Test if base class gets implicit access control when inheritance decorator is us
 """
 
 from limen import private, protected, public
+from limen.exceptions import PermissionDeniedError
 
 print("Testing Base Class Implicit Access Control After Inheritance Decorator...\n")
 
@@ -23,7 +24,7 @@ base_obj = Base()
 try:
     result = base_obj._implicit_protected_method()
     print(f"_implicit_protected_method: {result} (should work - no implicit control yet)")
-except PermissionError as e:
+except PermissionDeniedError as e:
     print(f"_implicit_protected_method: BLOCKED - {e}")
 
 print("\n=== Applying @protected(Base) - this should trigger implicit access control on Base ===")
@@ -37,19 +38,19 @@ print("\n=== Testing Base class again (should now have implicit access control) 
 try:
     result = base_obj._implicit_protected_method()
     print(f"❌ _implicit_protected_method: {result} (should be blocked now)")
-except PermissionError as e:
+except PermissionDeniedError as e:
     print(f"✅ _implicit_protected_method: BLOCKED - {e}")
 
 try:
     result = base_obj.implicit_public_method()
     print(f"✅ implicit_public_method: {result} (should still work - public)")
-except PermissionError as e:
+except PermissionDeniedError as e:
     print(f"❌ implicit_public_method: BLOCKED - {e} (shouldn't be blocked)")
 
 try:
     result = base_obj._Base__implicit_private_method()
     print(f"❌ __implicit_private_method: {result} (should be blocked)")
-except PermissionError as e:
+except PermissionDeniedError as e:
     print(f"✅ __implicit_private_method: BLOCKED - {e}")
 
 print("\n=== Testing new Base instance ===")
@@ -58,7 +59,7 @@ new_base = Base()
 try:
     result = new_base._implicit_protected_method()
     print(f"❌ _implicit_protected_method (new instance): {result} (should be blocked)")
-except PermissionError as e:
+except PermissionDeniedError as e:
     print(f"✅ _implicit_protected_method (new instance): BLOCKED - {e}")
 
 print("\n✅ SUCCESS: Implicit access control is now applied to base classes when inheritance decorators are used!")

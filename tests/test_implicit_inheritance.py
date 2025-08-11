@@ -8,6 +8,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from limen import protected, private, public
+from limen.exceptions import PermissionDeniedError
 
 def test_implicit_inheritance():
     """Test implicit access control when using inheritance decorators"""
@@ -48,7 +49,7 @@ def test_implicit_inheritance():
     
     try:
         print(f"  ? _implicit_protected_method: {base_obj._implicit_protected_method()}")
-    except PermissionError as e:
+    except PermissionDeniedError as e:
         print(f"  ✅ _implicit_protected_method blocked: {e}")
     except Exception as e:
         print(f"  ❌ _implicit_protected_method error: {e}")
@@ -60,7 +61,7 @@ def test_implicit_inheritance():
     
     try:
         print(f"  ? explicit_private_method: {base_obj.explicit_private_method()}")
-    except PermissionError as e:
+    except PermissionDeniedError as e:
         print(f"  ✅ explicit_private_method blocked: {e}")
     except Exception as e:
         print(f"  ❌ explicit_private_method error: {e}")
@@ -127,7 +128,7 @@ def test_implicit_inheritance():
     try:
         result = derived_obj._implicit_protected_method()
         print(f"  ❌ _implicit_protected_method should be blocked: {result}")
-    except PermissionError as e:
+    except PermissionDeniedError as e:
         print(f"  ✅ _implicit_protected_method blocked: {e}")
     except Exception as e:
         print(f"  ❌ _implicit_protected_method error: {e}")
@@ -140,7 +141,7 @@ def test_implicit_inheritance():
     try:
         result = derived_obj.explicit_private_method()
         print(f"  ❌ explicit_private_method should be blocked: {result}")
-    except PermissionError as e:
+    except PermissionDeniedError as e:
         print(f"  ✅ explicit_private_method blocked: {e}")
     except Exception as e:
         print(f"  ❌ explicit_private_method error: {e}")

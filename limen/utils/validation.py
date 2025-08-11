@@ -2,7 +2,7 @@
 Validation utilities for the Limen Access Control System
 """
 from typing import Callable
-from .error_messages import format_invalid_usage_message, format_bare_class_decoration_message
+from ..exceptions import DecoratorUsageError
 
 
 def validate_method_usage(func: Callable, decorator_name: str) -> None:
@@ -21,7 +21,7 @@ def validate_method_usage(func: Callable, decorator_name: str) -> None:
 
         if len(qualname_parts) < 2:
             # Single part = module-level function
-            raise ValueError(format_invalid_usage_message(decorator_name, "module-level function"))
+            raise DecoratorUsageError(decorator_name, "module-level function")
         elif '<locals>' in qualname_parts:
             # If it contains <locals>, check if it ends with ClassName.method_name
             # Find the last occurrence of <locals>
@@ -33,7 +33,7 @@ def validate_method_usage(func: Callable, decorator_name: str) -> None:
             if len(remaining_parts) < 2:
                 # This is likely a test case defining a function inside a test
                 # Use "module-level function" for consistency with existing tests
-                raise ValueError(format_invalid_usage_message(decorator_name, "module-level function"))
+                raise DecoratorUsageError(decorator_name, "module-level function")
 
 
 def validate_class_decoration(cls, decorator_name: str) -> None:
@@ -44,6 +44,6 @@ def validate_class_decoration(cls, decorator_name: str) -> None:
     try:
         caller_frame = frame.f_back.f_back  # Go up two frames
         if caller_frame and cls.__name__ not in caller_frame.f_locals:
-            raise ValueError(format_bare_class_decoration_message(decorator_name))
+            raise DecoratorUsageError(decorator_name, "bare class")
     finally:
         del frame

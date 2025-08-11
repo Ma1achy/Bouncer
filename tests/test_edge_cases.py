@@ -7,6 +7,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from limen import private, protected, public
+from limen.exceptions import PermissionDeniedError
 from limen.system.access_control import get_access_control_system
 
 @pytest.mark.edge_cases
@@ -24,7 +25,7 @@ class TestEdgeCases:
         obj = TestClass()
         
         # With enforcement enabled (default), access should be blocked
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             obj.private_method()
         
                 # Disable enforcement - access should be allowed
@@ -38,7 +39,7 @@ class TestEdgeCases:
         access_control.enforcement_enabled = True
         
         # Access should be blocked again
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             obj.private_method()
     
     def test_nested_class_access(self):
@@ -56,13 +57,13 @@ class TestEdgeCases:
                 def try_access_outer(self, outer_obj):
                     try:
                         return outer_obj.outer_private()
-                    except PermissionError:
+                    except PermissionDeniedError:
                         return 'BLOCKED'
             
             def try_access_nested(self, nested_obj):
                 try:
                     return nested_obj.nested_private()
-                except PermissionError:
+                except PermissionDeniedError:
                     return 'BLOCKED'
         
         outer_obj = Outer()
@@ -106,7 +107,7 @@ class TestEdgeCases:
         assert derived_obj.private_method() == "derived_public"
         
         # Overridden private method should not be accessible externally
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             derived_obj.protected_method()
     
     def test_property_getter_access_control(self):
@@ -142,11 +143,11 @@ class TestEdgeCases:
         assert obj.internal_access() == "new_value"
         
         # External getter access should be blocked
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             _ = obj.private_property
         
         # External setter access to the private method should be blocked
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             obj._set_private_value("external_value")
     
     def test_multiple_inheritance_diamond_problem(self):
@@ -169,7 +170,7 @@ class TestEdgeCases:
                 # Which method gets called depends on MRO
                 try:
                     return self.method()
-                except PermissionError:
+                except PermissionDeniedError:
                     return 'BLOCKED'
         
         child_obj = Child()
@@ -209,7 +210,7 @@ class TestEdgeCases:
         assert obj.custom_attr == "descriptor_value"
         
         # Private property accessing descriptor should follow access control
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             _ = obj.private_descriptor_access
     
     def test_metaclass_interaction(self):
@@ -231,7 +232,7 @@ class TestEdgeCases:
         assert obj.meta_added_method() == "meta_method"
         
         # Private method should still be controlled
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             obj.private_method()
     
     def test_class_method_with_inheritance_edge_case(self):
@@ -249,11 +250,11 @@ class TestEdgeCases:
                 return cls.private_class_method()
         
         # Direct call on derived should fail
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             Derived.private_class_method()
         
         # Call through derived class method should also fail
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             Derived.try_call_private()
     
     def test_static_method_inheritance_edge_case(self):
@@ -271,9 +272,9 @@ class TestEdgeCases:
                 return Base.private_static_method()
         
         # Direct call should fail
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             Derived.private_static_method()
         
         # Call through derived static method should also fail
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             Derived.try_call_private()

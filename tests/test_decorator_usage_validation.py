@@ -5,13 +5,14 @@ import pytest
 
 # Import from the limen package
 from limen import private, protected
+from limen.exceptions import DecoratorUsageError
 
 
 def test_invalid_bare_class_decoration():
     """Test that bare class decoration (without arguments) raises an error"""
     
     # This should raise an error - bare decoration on class is invalid
-    with pytest.raises(ValueError, match="cannot be used as a class decorator without arguments"):
+    with pytest.raises(DecoratorUsageError, match="cannot be applied to a class without specifying a class"):
         @private
         class InvalidClass:
             pass
@@ -65,7 +66,7 @@ def test_valid_method_decoration():
 def test_invalid_function_decoration():
     """Test that module-level function decoration raises error"""
     
-    with pytest.raises(ValueError, match="cannot be applied to module-level function"):
+    with pytest.raises(DecoratorUsageError, match="cannot be applied to module-level function"):
         @private
         def invalid_function():
             pass

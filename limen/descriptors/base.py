@@ -106,8 +106,11 @@ class AccessControlledDescriptor(ABC, MethodWrapperMixin):
             result = access_control.check_access(self._owner, self._name, self._access_level)
         
         if not result:
-            raise PermissionError(
-                f"Access denied to {self._access_level.value} {self._get_member_type()} {self._name}"
+            from ..exceptions import PermissionDeniedError
+            raise PermissionDeniedError(
+                self._access_level.value, 
+                self._get_member_type(), 
+                self._name
             )
     
     @abstractmethod

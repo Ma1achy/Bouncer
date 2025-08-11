@@ -4,6 +4,7 @@ Test friend methods functionality - methods of one class that are friends of ano
 import pytest
 
 from limen import private, protected, public, friend
+from limen.exceptions import PermissionDeniedError
 
 
 @pytest.mark.friend_methods
@@ -35,11 +36,11 @@ class TestFriendMethods:
         
         # Non-friend should be blocked
         stranger = Stranger()
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             stranger.try_get_secret(keeper)
         
         # Direct external access should be blocked
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             keeper.get_secret()
     
     def test_protected_friend_instance_method(self):
@@ -66,7 +67,7 @@ class TestFriendMethods:
         
         # Non-friend should be blocked
         non_friend = NonFriend()
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             non_friend.try_get_info(keeper)
     
     def test_friend_classmethod(self):
@@ -93,7 +94,7 @@ class TestFriendMethods:
         assert TrustedFriend.reveal_secret_cls(keeper) == "class_secret"
         
         # Non-friend class method should be blocked
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             NonFriend.try_get_secret(keeper)
     
     def test_friend_staticmethod(self):
@@ -120,7 +121,7 @@ class TestFriendMethods:
         assert TrustedFriend.reveal_secret_static(keeper) == "static_secret"
         
         # Non-friend static method should be blocked
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             NonFriend.try_get_secret(keeper)
     
     def test_multiple_friend_methods_same_class(self):
@@ -156,7 +157,7 @@ class TestFriendMethods:
         assert friend_obj.get_second_secret(keeper) == "secret2"
         
         # Non-friend method should be blocked
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             friend_obj.normal_method(keeper)
     
     def test_friend_method_with_access_control_decorators(self):
@@ -198,17 +199,17 @@ class TestFriendMethods:
                 # Try to access each friend method
                 try:
                     results['private'] = self.private_friend_method(keeper)
-                except PermissionError:
+                except PermissionDeniedError:
                     results['private'] = 'BLOCKED'
                 
                 try:
                     results['protected'] = self.protected_friend_method(keeper)
-                except PermissionError:
+                except PermissionDeniedError:
                     results['protected'] = 'BLOCKED'
                 
                 try:
                     results['public'] = self.public_friend_method(keeper)
-                except PermissionError:
+                except PermissionDeniedError:
                     results['public'] = 'BLOCKED'
                 
                 return results
@@ -233,10 +234,10 @@ class TestFriendMethods:
         assert friend_obj.public_friend_method(keeper) == 'public: combined_secret'
         
         # External access to private/protected should be blocked
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             friend_obj.private_friend_method(keeper)
         
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             friend_obj.protected_friend_method(keeper)
     
     def test_friend_method_vs_friend_class(self):
@@ -270,7 +271,7 @@ class TestFriendMethods:
         partial_friend_obj = PartialFriend()
         assert partial_friend_obj.friend_method(keeper) == "mixed_secret"
         
-        with pytest.raises(PermissionError):
+        with pytest.raises(PermissionDeniedError):
             partial_friend_obj.non_friend_method(keeper)
     
     def test_friend_methods_with_inheritance(self):

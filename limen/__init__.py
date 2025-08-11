@@ -40,11 +40,10 @@ from .decorators import private, protected, public, friend
 from .system import enable_enforcement, disable_enforcement, get_metrics, reset_system
 from .core import AccessLevel, InheritanceType
 from .exceptions import (
-    AccessControlError,
+    LimenError,
     PermissionDeniedError, 
     DecoratorConflictError,
-    InvalidDecoratorUsageError,
-    FriendshipError
+    DecoratorUsageError
 )
 
 __all__ = [
@@ -58,8 +57,8 @@ __all__ = [
     'AccessLevel', 'InheritanceType',
     
     # Exceptions
-    'AccessControlError', 'PermissionDeniedError', 'DecoratorConflictError',
-    'InvalidDecoratorUsageError', 'FriendshipError'
+    'LimenError', 'PermissionDeniedError', 'DecoratorConflictError',
+    'DecoratorUsageError'
 ]
 
 __version__ = "1.0.1"

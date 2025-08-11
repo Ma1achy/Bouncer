@@ -7,6 +7,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from limen import private, protected, public, friend
+from limen.exceptions import PermissionDeniedError
 from limen.system.access_control import get_access_control_system
 
 @pytest.mark.cpp_semantics
@@ -51,22 +52,22 @@ class TestFriendRelationships:
                 results = {}
                 try:
                     results['private_method'] = target_obj.private_method()
-                except PermissionError:
+                except PermissionDeniedError:
                     results['private_method'] = 'BLOCKED'
                 
                 try:
                     results['private_static'] = target_obj.private_static()
-                except PermissionError:
+                except PermissionDeniedError:
                     results['private_static'] = 'BLOCKED'
                 
                 try:
                     results['private_class'] = target_obj.private_class()
-                except PermissionError:
+                except PermissionDeniedError:
                     results['private_class'] = 'BLOCKED'
                 
                 try:
                     results['private_prop'] = target_obj.private_prop
-                except PermissionError:
+                except PermissionDeniedError:
                     results['private_prop'] = 'BLOCKED'
                 
                 return results
@@ -115,12 +116,12 @@ class TestFriendRelationships:
                 results = {}
                 try:
                     results['protected_method'] = target_obj.protected_method()
-                except PermissionError:
+                except PermissionDeniedError:
                     results['protected_method'] = 'BLOCKED'
                 
                 try:
                     results['protected_prop'] = target_obj.protected_prop
-                except PermissionError:
+                except PermissionDeniedError:
                     results['protected_prop'] = 'BLOCKED'
                 
                 return results

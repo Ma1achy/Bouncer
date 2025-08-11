@@ -15,7 +15,7 @@ Limen is an access control system that provides fine-grained security and encaps
 - **Descriptor Support**: Full compatibility with `@staticmethod`, `@classmethod`, `@property` decorators
 - **Multiple Inheritance**: Support for complex inheritance hierarchies with proper access control
 - **Runtime Management**: Dynamic enable/disable enforcement, metrics, and debugging capabilities
-- **Error Handling**: Specific exception types for different access control violations
+- **Enhanced Error Handling**: Contextual exception types with detailed error messages, code suggestions, and intelligent formatting
 - **Zero Dependencies**: Pure Python implementation with no external requirements
 
 ## Installation
@@ -877,18 +877,26 @@ reset_system()
 
 ## Error Handling
 
-Limen provides specific exception types for different scenarios.
+Limen provides comprehensive, contextual exception types with enhanced error messages that include actual code suggestions and detailed explanations.
 
 ### Exception Types
 
 ```python
 from limen.exceptions import (
-    AccessControlError,          # Base exception
-    PermissionDeniedError,       # Custom access denial (if using custom exceptions)
-    DecoratorConflictError,      # Conflicting decorators
+    LimenError,                  # Base exception for all Limen errors
+    PermissionDeniedError,       # Access denied to private/protected members
+    DecoratorConflictError,      # Conflicting access level decorators
+    DecoratorUsageError,         # Incorrect decorator usage
 )
+```
 
-# Standard PermissionError is used by default
+#### LimenError
+Base exception class for all Limen access control errors. All other Limen exceptions inherit from this.
+
+#### PermissionDeniedError
+Raised when attempting to access private or protected members from unauthorized contexts.
+
+```python
 class SecureClass:
     @private
     def secret_method(self):
@@ -896,37 +904,153 @@ class SecureClass:
 
 try:
     obj = SecureClass()
-    obj.secret_method()
-except PermissionError as e:
+    obj.secret_method()  # Unauthorized access
+except PermissionDeniedError as e:
     print(f"Access denied: {e}")
-    # Output: Access denied: Access denied to private method secret_method
+    # Output: Access denied to private method secret_method
 ```
 
-### Decorator Conflicts
+#### DecoratorConflictError
+Raised when conflicting access level decorators are applied to the same method. Provides enhanced error messages with actual code suggestions and function body extraction.
 
 ```python
 # This will raise an error during class creation
 try:
     class ConflictClass:
         @private
-        @public  # Conflicting access levels
-        def conflicted_method(self):
-            pass
-except ValueError as e:
+        @protected  # Conflicting access levels
+        def conflicted_method(self, data: str) -> str:
+            return f"processing {data}"
+except DecoratorConflictError as e:
     print(f"Decorator conflict: {e}")
+    # Enhanced output shows:
+    # Conflicting access level decorators on conflicted_method(): 
+    # already has @private, cannot apply @protected.
+    # Did you mean:
+    # @protected
+    # def conflicted_method(self, data: str) -> str:
+    #     return f"processing {data}"
+    # ?
 ```
 
-### Invalid Usage Detection
+#### DecoratorUsageError  
+Raised when decorators are used incorrectly (wrong context, invalid syntax, etc.). Provides contextual suggestions based on the specific misuse.
 
 ```python
-# Invalid decorator usage is detected
+# Invalid decorator usage examples:
+
+# 1. Module-level function (not allowed)
 try:
     @private  # Cannot use on module-level function
     def module_function():
         pass
-except ValueError as e:
+except DecoratorUsageError as e:
     print(f"Invalid usage: {e}")
+    # Output: @private cannot be applied to module-level functions. 
+    # Access control decorators can only be used on class methods.
+    # Did you mean to put this function inside a class?
+
+# 2. Bare class decoration (missing inheritance target)
+try:
+    @private  # Missing class argument
+    class MyClass:
+        pass
+except DecoratorUsageError as e:
+    print(f"Invalid usage: {e}")
+    # Output: @private cannot be applied to a class without specifying a class to inherit from.
+    # Did you mean: @private(BaseClass) ?
+
+# 3. Duplicate decorator application
+try:
+    class DuplicateClass:
+        @private
+        @private  # Applied twice
+        def duplicate_method(self):
+            return "data"
+except DecoratorConflictError as e:
+    print(f"Duplicate decorator: {e}")
+    # Output: @private was applied to duplicate_method() more than once!
+    # Did you mean:
+    # @private
+    # def duplicate_method(self):
+    #     return "data"
+    # ?
 ```
+
+### Enhanced Error Messages
+
+Limen's error system provides contextual, helpful error messages that include:
+
+- **Actual function signatures** with type annotations
+- **Real function body content** (not just "pass")
+- **Specific suggestions** for fixing the error
+- **Contextual help** based on the type of mistake
+
+```python
+# Example with complex method signature
+class ExampleClass:
+    @property
+    @private
+    @protected  # Conflict error
+    def complex_property(self) -> Dict[str, int]:
+        return {"count": 42, "status": 1}
+
+# Error message will show:
+# Conflicting access level decorators on complex_property: 
+# already has @private, cannot apply @protected.
+# Did you mean:
+# @property
+# @protected  
+# def complex_property(self) -> Dict[str, int]:
+#     return {"count": 42, "status": 1}
+# ?
+```
+
+### Property vs Method Formatting
+
+Error messages intelligently format target names based on the member type:
+- **Methods**: Show with parentheses `method_name()`
+- **Properties**: Show without parentheses `property_name`
+
+```python
+# Property error (no parentheses)
+class MyClass:
+    @property
+    @private
+    @private  # Duplicate
+    def my_prop(self):
+        return "value"
+# Error: @private was applied to my_prop more than once!
+
+# Method error (with parentheses)  
+class MyClass:
+    @private
+    @private  # Duplicate
+    def my_method(self):
+        return "value"
+# Error: @private was applied to my_method() more than once!
+```
+
+### Error System Architecture
+
+Limen's error system is built with a modular, maintainable architecture:
+
+- **`method_utils.py`**: Method introspection utilities
+  - `MethodInspector`: Extracts method types, arguments, and decorators with type hints
+  - `FunctionBodyExtractor`: Extracts actual function implementation code  
+  - `TargetFormatter`: Formats method names appropriately (with/without parentheses)
+
+- **`message_generators.py`**: Contextual message generation
+  - `MessageGenerator`: Creates detailed, helpful error messages with code suggestions
+  - Handles different error scenarios with specific, actionable advice
+
+- **`limen_errors.py`**: Clean, focused exception classes
+  - Each exception focuses on its core responsibility
+  - Uses composition for shared functionality
+  - Easy to extend and maintain
+
+This modular design ensures that error messages are consistent, helpful, and maintainable as the system grows.
+
 ## Testing and Development
 
 ### Testing with Enforcement Control
