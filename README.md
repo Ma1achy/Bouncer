@@ -6,6 +6,7 @@ Bouncer is an access control system that provides fine-grained security and enca
 
 - **C++ Style Access Control**: Complete implementation of `@private`, `@protected`, `@public` decorators
 - **Implicit Access Control**: Automatic access level detection based on naming conventions (_, __, normal names)
+- **Name Mangling Bypass Prevention**: Blocks circumvention of access control via `_ClassName__method` patterns
 - **Friend Relationships**: Support for `@friend` classes, methods, functions, and staticmethods/classmethods
 - **Advanced Inheritance**: True C++ style inheritance with public, protected, and private inheritance patterns
 - **Dual-Layer Security**: Access modifiers on friend methods for fine-grained permission control
@@ -619,7 +620,78 @@ helper.internal_class_operation(target)
 # Helper.private_class_helper(target)     # PermissionError
 ```
 
+## Security Features
 
+### Name Mangling Bypass Prevention
+
+**Critical Security Feature**: Bouncer prevents bypassing access control through Python's name mangling mechanism.
+
+Python automatically converts private methods like `__private_method` to `_ClassName__private_method`. Without protection, external code could bypass access control by directly accessing the mangled name:
+
+```python
+class SecureClass:
+    def __private_method(self):
+        return "secret data"
+    
+    def public_access(self):
+        return self.__private_method()  # Legitimate internal access
+
+# Apply implicit access control (detects __ methods as private)
+from bouncer.utils.implicit import apply_implicit_access_control
+apply_implicit_access_control(SecureClass)
+
+obj = SecureClass()
+
+# ✅ Internal access works
+result = obj.public_access()  # "secret data"
+
+# ❌ Direct access blocked (AttributeError)
+# obj.__private_method()  # AttributeError: no attribute '__private_method'
+
+# ❌ Name mangling bypass blocked (PermissionError)  
+# obj._SecureClass__private_method()  # PermissionError: Access denied to private method
+```
+
+**How It Works:**
+- Bouncer automatically installs custom `__getattribute__` protection when applying implicit access control
+- The protection intercepts mangled name access (`_ClassName__method`) and validates permissions
+- Only allows access if the caller has proper authorization (same class, friend, etc.)
+- Preserves all legitimate access patterns while blocking security bypasses
+
+**Friend Access Still Works:**
+```python
+class DataStore:
+    def __private_data(self):
+        return "sensitive"
+
+@friend(DataStore)
+class AuthorizedProcessor:
+    def process(self, store):
+        # Friend can access via mangled name when authorized
+        return store._DataStore__private_data()
+
+apply_implicit_access_control(DataStore)
+
+store = DataStore()
+processor = AuthorizedProcessor()
+result = processor.process(store)  # ✅ Works - friend access allowed
+
+# Unauthorized access still blocked
+class UnauthorizedClass:
+    def hack(self, store):
+        return store._DataStore__private_data()  # ❌ PermissionError
+
+unauthorized = UnauthorizedClass()
+# unauthorized.hack(store)  # PermissionError: Access denied
+```
+
+**Testing Name Mangling Protection:**
+```python
+# Test suite available in tests/test_name_mangling_bypass_prevention.py
+pytest tests/test_name_mangling_bypass_prevention.py -v
+```
+
+This security feature ensures that Bouncer's access control cannot be circumvented through Python's name mangling, providing true encapsulation and security for your private methods.
 
 ## Property Access Control
 
