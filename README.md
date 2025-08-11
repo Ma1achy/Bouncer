@@ -624,9 +624,11 @@ helper.internal_class_operation(target)
 
 ### Name Mangling Bypass Prevention
 
-**Critical Security Feature**: Bouncer prevents bypassing access control through Python's name mangling mechanism.
+**Critical Security Feature**: Bouncer prevents bypassing access control through Python's name mangling mechanism using multiple protection layers.
 
 Python automatically converts private methods like `__private_method` to `_ClassName__private_method`. Without protection, external code could bypass access control by directly accessing the mangled name:
+
+#### Protection for Implicit Private Methods
 
 ```python
 class SecureClass:
@@ -652,23 +654,64 @@ result = obj.public_access()  # "secret data"
 # obj._SecureClass__private_method()  # PermissionError: Access denied to private method
 ```
 
+#### Protection for Explicit @private Decorators
+
+Explicit `@private` decorators also prevent name mangling bypasses through descriptor-level access control:
+
+```python
+from bouncer import private
+
+class SecureClass:
+    @private
+    def __private_method(self):
+        return "secret data"
+    
+    @private  
+    def regular_private(self):
+        return "also secret"
+    
+    def public_access(self):
+        return f"{self.__private_method()}, {self.regular_private()}"
+
+obj = SecureClass()
+
+# Internal access works
+result = obj.public_access()  # "secret data, also secret"
+
+# Direct access blocked (PermissionError)
+# obj.regular_private()  # PermissionError: Access denied to private method
+
+# Name mangling bypass blocked (PermissionError) 
+# obj._SecureClass__private_method()  # PermissionError: Access denied to private method
+
+# Manual mangling attempts fail (AttributeError)
+# obj._SecureClass__regular_private()  # AttributeError: no such attribute
+```
+
 **How It Works:**
-- Bouncer automatically installs custom `__getattribute__` protection when applying implicit access control
-- The protection intercepts mangled name access (`_ClassName__method`) and validates permissions
-- Only allows access if the caller has proper authorization (same class, friend, etc.)
-- Preserves all legitimate access patterns while blocking security bypasses
+- **Explicit decorators**: Descriptor-level access control validates every method call regardless of access path
+- **Implicit detection**: Custom `__getattribute__` protection intercepts mangled name access for `__` methods  
+- **Dual protection**: Methods can be protected by both mechanisms simultaneously
+- **Friend preservation**: Authorized friends can still access via any legitimate method
+- **Zero bypass**: No known way to circumvent the protection mechanisms
 
 **Friend Access Still Works:**
 ```python
 class DataStore:
     def __private_data(self):
         return "sensitive"
+    
+    @private
+    def __explicit_private(self):
+        return "explicit sensitive"
 
 @friend(DataStore)
 class AuthorizedProcessor:
     def process(self, store):
-        # Friend can access via mangled name when authorized
-        return store._DataStore__private_data()
+        # Friend can access via mangled name when authorized (both types)
+        implicit = store._DataStore__private_data()
+        explicit = store._DataStore__explicit_private()
+        return f"{implicit}, {explicit}"
 
 apply_implicit_access_control(DataStore)
 
@@ -676,7 +719,7 @@ store = DataStore()
 processor = AuthorizedProcessor()
 result = processor.process(store)  # Works - friend access allowed
 
-# Unauthorized access still blocked
+# Unauthorized access still blocked for both
 class UnauthorizedClass:
     def hack(self, store):
         return store._DataStore__private_data()  # PermissionError
