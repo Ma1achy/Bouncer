@@ -21,12 +21,9 @@ class AccessControlDecorator:
             if isinstance(arg, type):
                 # This is a class - we need to check if it's bare decoration or inheritance
                 if self._is_bare_class_decoration():
-                    # This is invalid bare decoration like @private \n class Foo:
-                    raise ValueError(
-                        f"@{self._access_level.value} cannot be used as a class decorator without arguments. "
-                        f"Use @{self._access_level.value}(BaseClass) for {self._access_level.value} inheritance from BaseClass, "
-                        f"or apply @{self._access_level.value} to individual methods instead."
-                    )
+                    # This is bare decoration like @private \n class Foo:
+                    # Apply implicit access control based on naming conventions
+                    return self._handle_implicit_class_decoration(arg)
                 else:
                     # This is valid - @private(BaseClass) called, now applying to derived class
                     return self._handle_class_decoration(arg)
@@ -62,6 +59,16 @@ class AccessControlDecorator:
         
         return DescriptorFactory.create_method_descriptor(func, self._access_level)
     
+    def _handle_implicit_class_decoration(self, cls):
+        """Handle bare class decoration (should raise error for now)"""
+        # For now, we don't support bare class decoration like @private \n class Foo:
+        # This would be for implicit access control on the class itself
+        # But the user's requirements show this should be an error case
+        raise ValueError(
+            f"@{self._access_level.value} cannot be used as a class decorator without arguments. "
+            f"Use @{self._access_level.value}(BaseClass) for inheritance, or apply the decorator to individual methods."
+        )
+    
     def _handle_class_decoration(self, cls):
         """Handle class decoration (inheritance)"""
         # If we get here, it's valid inheritance decoration
@@ -90,6 +97,11 @@ class AccessControlDecorator:
                         f"@{self._access_level.value}({', '.join(base_names)}) can only be applied to classes for inheritance."
                     )
             
+            # Apply implicit access control to base classes first
+            for base_class in base_classes:
+                self._apply_implicit_access_control(base_class)
+            
+            # Then apply to derived class
             self._apply_implicit_access_control(derived_class)
             
             if not hasattr(derived_class, '_inheritance_info'):
