@@ -693,7 +693,6 @@ result = obj.public_access()  # "secret data, also secret"
 - **Implicit detection**: Custom `__getattribute__` protection intercepts mangled name access for `__` methods  
 - **Dual protection**: Methods can be protected by both mechanisms simultaneously
 - **Friend preservation**: Authorized friends can still access via any legitimate method
-- **Zero bypass**: No known way to circumvent the protection mechanisms
 
 **Friend Access Still Works:**
 ```python
@@ -726,12 +725,6 @@ class UnauthorizedClass:
 
 unauthorized = UnauthorizedClass()
 # unauthorized.hack(store)  # PermissionError: Access denied
-```
-
-**Testing Name Mangling Protection:**
-```python
-# Test suite available in tests/test_name_mangling_bypass_prevention.py
-pytest tests/test_name_mangling_bypass_prevention.py -v
 ```
 
 This security feature ensures that Bouncer's access control cannot be circumvented through Python's name mangling, providing true encapsulation and security for your private methods.
