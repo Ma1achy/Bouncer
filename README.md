@@ -29,11 +29,13 @@ cd Bouncer
 pip install -e .
 ```
 
-## Access Control Decorators
+## Access Control & Inheritance
 
-Bouncer provides three main access control decorators that define method visibility and accessibility.
+Bouncer provides comprehensive access control through explicit decorators and C++ style inheritance semantics with public, protected, and private inheritance types.
 
-### @private - Same Class Only
+### Basic Access Control Decorators
+
+#### @private - Same Class Only
 
 Private methods are only accessible within the same class where they're defined.
 
@@ -55,7 +57,7 @@ obj.public_method()  # Works - public access
 # obj._private_method()  # PermissionError - private access
 ```
 
-### @protected - Inheritance Hierarchy
+#### @protected - Inheritance Hierarchy
 
 Protected methods are accessible within the same class and its subclasses.
 
@@ -75,7 +77,7 @@ obj.foo()  # Works - calls protected method internally
 # obj._protected_method()  # PermissionError - external access blocked
 ```
 
-### @public - Universal Access
+#### @public - Universal Access
 
 Public methods are accessible from anywhere (default Python behavior, useful for explicit documentation).
 
@@ -92,6 +94,192 @@ class Base:
 obj = Base()
 obj.get_data()      # Works from anywhere
 obj.check_status()  # Works from anywhere
+```
+
+### C++ Style Inheritance Control
+
+Apply inheritance decorators to modify access levels of inherited members according to C++ semantics.
+
+#### Public Inheritance (Default)
+
+Standard Python inheritance behavior where access levels are preserved:
+
+```python
+class Base:
+    def public_method(self):              # Implicit @public
+        return "public"
+    
+    def _protected_method(self):          # Implicit @protected
+        return "protected"
+    
+    def __private_method(self):           # Implicit @private
+        return "private"
+
+class Derived(Base):
+    def test_access(self):
+        # Can access public and protected members from base
+        public_data = self.public_method()       # Inherited as public
+        protected_data = self._protected_method() # Inherited as protected
+        
+        # Cannot access private members from base
+        # private_data = self.__private_method()  # PermissionError
+        
+        return f"{public_data}, {protected_data}"
+
+obj = Derived()
+result = obj.test_access()          # Works internally
+external_public = obj.public_method()  # Works externally - public access
+# external_protected = obj._protected_method()  # PermissionError - protected
+```
+
+#### Protected Inheritance
+
+Protected inheritance converts public members to protected, following C++ semantics:
+
+```python
+class Base:
+    def public_method(self):             # Implicit @public
+        return "public"
+    
+    def _protected_method(self):         # Implicit @protected
+        return "protected"
+    
+    @private
+    def _private_method(self):           # Explicit @private
+        return "private"
+
+@protected(Base)  # Protected inheritance - applies implicit control to Base
+class Derived(Base):
+    def operation(self):
+        # Can access all inherited members internally
+        public_data = self.public_method()       # Now protected due to inheritance
+        protected_data = self._protected_method() # Remains protected
+        # Cannot access private members
+        # secret = self._private_method()        # PermissionError
+        return f"{public_data}, {protected_data}"
+
+obj = Derived()
+result = obj.operation()       # Works internally
+
+# External access - all methods are now protected due to inheritance
+# obj.public_method()          # PermissionError - public became protected
+# obj._protected_method()      # PermissionError - protected remains protected
+```
+
+#### Private Inheritance
+
+Private inheritance makes all inherited members private to the derived class:
+
+```python
+class Base:
+    def public_method(self):             # Implicit @public
+        return "public"
+    
+    def _protected_method(self):         # Implicit @protected
+        return "protected"
+
+@private(Base)  # Private inheritance
+class Derived(Base):
+    def operation(self):
+        # Can access inherited members internally
+        public_data = self.public_method()    # Now private due to inheritance
+        protected_data = self._protected_method() # Now private due to inheritance
+        return f"{public_data}, {protected_data}"
+    
+    def public_interface(self):
+        # Expose functionality through controlled interface
+        return self.operation()
+
+obj = Derived()
+result = obj.public_interface()       # Works - controlled access
+
+# External access blocked - all inherited methods are now private
+# obj.public_method()                 # PermissionError - public became private
+# obj._protected_method()             # PermissionError - protected became private
+```
+
+#### Inheritance Summary
+
+| Inheritance Type | Public Members | Protected Members | Private Members |
+|------------------|----------------|-------------------|-----------------|
+| **Public** (default) | Remain public | Remain protected | Remain private (inaccessible) |
+| **Protected** `@protected(Base)` | Become protected | Remain protected | Remain private (inaccessible) |
+| **Private** `@private(Base)` | Become private | Become private | Remain private (inaccessible) |
+
+### Multiple Inheritance with Access Control
+
+Apply inheritance decorators to multiple base classes for complex access patterns:
+
+```python
+class BaseA:
+    def method_a(self):                 # Implicit @public
+        return "a"
+    
+    def _helper_a(self):                # Implicit @protected
+        return "helper a"
+
+class BaseB:
+    def method_b(self):                 # Implicit @public
+        return "b"
+    
+    def _helper_b(self):                # Implicit @protected
+        return "helper b"
+
+# Multiple inheritance with different access patterns
+@protected(BaseA)                      # Only BaseA gets protected inheritance
+@private(BaseB)                        # Only BaseB gets private inheritance
+class Derived(BaseA, BaseB):
+    def operation(self):
+        # BaseA methods - protected due to inheritance
+        a_method = self.method_a()       # Now protected
+        a_helper = self._helper_a()      # Still protected
+        
+        # BaseB methods - private due to inheritance
+        b_method = self.method_b()       # Now private
+        b_helper = self._helper_b()      # Now private
+        
+        return f"{a_method}, {a_helper}, {b_method}, {b_helper}"
+    
+    def public_interface(self):
+        return self.operation()
+
+obj = Derived()
+result = obj.public_interface()       # Works - controlled access
+
+# External access follows inheritance rules
+# obj.method_a()                      # PermissionError - protected inheritance
+# obj.method_b()                      # PermissionError - private inheritance
+```
+
+### Friend Relationships with Inheritance
+
+Friend relationships are preserved across inheritance patterns:
+
+```python
+class Target:
+    def _protected_method(self):        # Implicit @protected
+        return "protected"
+
+@friend(Target)
+class Helper:
+    def access_target(self, target):
+        # Friend can access protected members
+        return target._protected_method()
+
+# Protected inheritance preserves friend relationships
+@protected(Target)
+class Derived(Target):
+    def internal_operation(self):
+        return self._protected_method()     # Works internally
+
+helper = Helper()
+derived_obj = Derived()
+
+# Friend access works even with inheritance
+result = helper.access_target(derived_obj)  # Works - friend relationship preserved
+
+# Regular external access blocked
+# derived_obj._protected_method()           # PermissionError - protected access
 ```
 
 ## Implicit Access Control
@@ -431,337 +619,7 @@ helper.internal_class_operation(target)
 # Helper.private_class_helper(target)     # PermissionError
 ```
 
-## C++ Style Inheritance Access Control
 
-Bouncer implements true C++ style inheritance semantics with public, protected, and private inheritance types. The inheritance decorator automatically applies implicit access control to base classes and modifies access levels according to C++ rules.
-
-### Public Inheritance (Default)
-
-Standard Python inheritance behavior where access levels are preserved:
-
-```python
-class Base:
-    def public_method(self):              # Implicit @public
-        return "public"
-    
-    def _protected_method(self):          # Implicit @protected
-        return "protected"
-    
-    def __private_method(self):           # Implicit @private
-        return "private"
-
-class Derived(Base):
-    def test_access(self):
-        # Can access public and protected members from base
-        public_data = self.public_method()       # Inherited as public
-        protected_data = self._protected_method() # Inherited as protected
-        
-        # Cannot access private members from base
-        # private_data = self.__private_method()  # PermissionError
-        
-        return f"{public_data}, {protected_data}"
-
-obj = Derived()
-result = obj.test_access()          # Works internally
-external_public = obj.public_method()  # Works externally - public access
-# external_protected = obj._protected_method()  # PermissionError - protected
-```
-
-### Protected Inheritance
-
-Protected inheritance converts public members to protected, following C++ semantics:
-
-```python
-class Base:
-    def public_method(self):             # Implicit @public
-        return "public"
-    
-    def _protected_method(self):         # Implicit @protected
-        return "protected"
-    
-    @private
-    def _private_method(self):           # Explicit @private
-        return "private"
-
-@protected(Base)  # Protected inheritance - applies implicit control to Base
-class Derived(Base):
-    def operation(self):
-        # Can access all inherited members internally
-        public_data = self.public_method()       # Now protected due to inheritance
-        protected_data = self._protected_method() # Remains protected
-        # Cannot access private members
-        # secret = self._private_method()        # PermissionError
-        return f"{public_data}, {protected_data}"
-
-obj = Derived()
-result = obj.operation()       # Works internally
-
-# External access - all methods are now protected due to inheritance
-# obj.public_method()          # PermissionError - public became protected
-# obj._protected_method()      # PermissionError - protected remains protected
-```
-
-### Private Inheritance
-
-Private inheritance makes all inherited members private to the derived class:
-
-```python
-class Base:
-    def public_method(self):             # Implicit @public
-        return "public"
-    
-    def _protected_method(self):         # Implicit @protected
-        return "protected"
-
-@private(Base)  # Private inheritance
-class Derived(Base):
-    def operation(self):
-        # Can access inherited members internally
-        public_data = self.public_method()    # Now private due to inheritance
-        protected_data = self._protected_method() # Now private due to inheritance
-        return f"{public_data}, {protected_data}"
-    
-    def public_interface(self):
-        # Expose functionality through controlled interface
-        return self.operation()
-
-obj = Derived()
-result = obj.public_interface()       # Works - controlled access
-
-# External access blocked - all inherited methods are now private
-# obj.public_method()                 # PermissionError - public became private
-# obj._protected_method()             # PermissionError - protected became private
-```
-
-### Multiple Inheritance
-
-Bouncer supports complex multiple inheritance patterns with proper access control. You can apply inheritance decorators to multiple base classes simultaneously:
-
-```python
-class Foo:
-    def foo_public(self):              # Implicit @public
-        return "foo public method"
-    
-    def _foo_protected(self):          # Implicit @protected
-        return "foo protected method"
-    
-    def __foo_private(self):           # Implicit @private
-        return "foo private method"
-
-class Bar:
-    def bar_public(self):              # Implicit @public
-        return "bar public method"
-    
-    def _bar_protected(self):          # Implicit @protected
-        return "bar protected method"
-    
-    @private                           # Explicit @private
-    def bar_explicit_private(self):
-        return "bar explicit private"
-
-# Multiple inheritance with access control applied to all base classes
-@protected(Foo, Bar)
-class Qux(Foo, Bar):
-    def qux_operation(self):
-        # Can access all inherited members internally
-        foo_pub = self.foo_public()              # Protected due to inheritance
-        foo_prot = self._foo_protected()         # Protected (unchanged)
-        bar_pub = self.bar_public()              # Protected due to inheritance
-        bar_prot = self._bar_protected()         # Protected (unchanged)
-        
-        # Cannot access private members from base classes
-        # foo_priv = self._Foo__foo_private()    # PermissionError
-        # bar_priv = self.bar_explicit_private() # PermissionError
-        
-        return f"Qux: {foo_pub}, {foo_prot}, {bar_pub}, {bar_prot}"
-
-qux = Qux()
-result = qux.qux_operation()          # Works internally
-
-# External access blocked due to protected inheritance
-# qux.foo_public()                    # PermissionError - public became protected
-# qux.bar_public()                    # PermissionError - public became protected
-# qux._foo_protected()                # PermissionError - protected access blocked
-# qux._bar_protected()                # PermissionError - protected access blocked
-```
-
-#### Complex Multiple Inheritance Hierarchies
-
-```python
-class BaseA:
-    def method_a(self):                 # Implicit @public
-        return "a"
-    
-    def _helper_a(self):                # Implicit @protected
-        return "helper a"
-    
-    def __private_a(self):              # Implicit @private
-        return "private a"
-
-class BaseB:
-    def method_b(self):                 # Implicit @public
-        return "b"
-    
-    def _helper_b(self):                # Implicit @protected
-        return "helper b"
-    
-    @private                            # Explicit @private
-    def _private_b(self):
-        return "private b"
-
-class BaseC:
-    def method_c(self):                 # Implicit @public
-        return "c"
-    
-    def _helper_c(self):                # Implicit @protected
-        return "helper c"
-
-# Triple inheritance with different access patterns
-@protected(BaseA, BaseB)               # Protected inheritance for BaseA and BaseB
-@private(BaseC)                        # Private inheritance for BaseC
-class Derived(BaseA, BaseB, BaseC):
-    def operation(self):
-        # BaseA methods - protected due to inheritance
-        a_method = self.method_a()       # Protected
-        a_helper = self._helper_a()      # Protected
-        
-        # BaseB methods - protected due to inheritance  
-        b_method = self.method_b()       # Protected
-        self._helper_b()                 # Protected
-        
-        # BaseC methods - private due to inheritance
-        c_method = self.method_c()       # Private
-        c_helper = self._helper_c()      # Private
-        
-        return f"{a_method}, {a_helper}, {b_method}, {c_method}, {c_helper}"
-    
-    def public_interface(self):
-        # Expose controlled functionality
-        return self.operation()
-
-obj = Derived()
-result = obj.public_interface()   # Works - controlled access
-
-# External access completely blocked for all inherited methods
-# obj.method_a()                  # PermissionError - protected inheritance
-# obj.method_b()                  # PermissionError - protected inheritance  
-# obj.method_c()                  # PermissionError - private inheritance
-# obj._helper_a()                 # PermissionError - protected method
-# obj._helper_b()                 # PermissionError - protected method
-# obj._helper_c()                 # PermissionError - private method
-```
-
-#### Mixed Inheritance Types
-
-You can combine different inheritance types for different base classes:
-
-```python
-class PublicAPI:
-#### Mixed Inheritance Types
-
-You can combine different inheritance types for different base classes:
-
-```python
-class BaseX:
-    def method_x(self):                 # Implicit @public
-        return "x"
-    
-    def _helper_x(self):                # Implicit @protected  
-        return "helper x"
-
-class BaseY:
-    def method_y(self):                 # Implicit @public
-        return "y"
-    
-    def _helper_y(self):                # Implicit @protected
-        return "helper y"
-
-class BaseZ:
-    def method_z(self):                 # Implicit @public
-        return "z"
-    
-    def _helper_z(self):                # Implicit @protected
-        return "helper z"
-
-# Mix inheritance types: public, protected, and private
-class Mixed(BaseX, BaseY, BaseZ):
-    pass
-
-# Apply different inheritance types to different base classes
-@protected(BaseY)                      # Only BaseY gets protected inheritance
-@private(BaseZ)                        # Only BaseZ gets private inheritance
-class Selective(BaseX, BaseY, BaseZ):
-    def test_access_levels(self):
-        # BaseX methods retain their original access levels
-        x_data = self.method_x()         # Still public
-        # x_helper = self._helper_x()    # Still protected (blocked externally)
-        
-        # BaseY methods become protected  
-        y_data = self.method_y()         # Now protected
-        y_helper = self._helper_y()      # Still protected
-        
-        # BaseZ methods become private
-        z_data = self.method_z()         # Now private
-        z_helper = self._helper_z()      # Now private
-        
-        return f"{x_data}, {y_data}, {z_data}"
-
-obj = Selective()
-result = obj.test_access_levels()   # Works internally
-
-# External access follows inheritance rules
-obj.method_x()                      # Works - public inheritance (default)
-# obj.method_y()                    # PermissionError - protected inheritance
-# obj.method_z()                    # PermissionError - private inheritance
-```
-
-### Inheritance with Friend Relationships
-
-Friend relationships are preserved and work correctly with inheritance patterns:
-
-### Inheritance with Friend Relationships
-
-Friend relationships are preserved and work correctly with inheritance patterns:
-
-```python
-class Target:
-    def _protected_method(self):        # Implicit @protected
-        return "protected"
-
-@friend(Target)
-class Friend:
-    def access_target(self, target):
-        # Friend can access protected members
-        return target._protected_method()
-
-# Protected inheritance preserves friend relationships
-@protected(Target)
-class Derived(Target):
-    def internal_operation(self):
-        return self._protected_method()     # Works internally
-
-class DerivedFriend(Friend):
-    def inherited_access(self, target):
-        # Inherits friend relationship
-        return self.access_target(target)   # Friend access works
-
-obj = Derived()
-friend = DerivedFriend()
-
-# Friend access works even with inheritance
-result = friend.inherited_access(obj)  # Works - friend relationship preserved
-
-# Regular external access blocked
-# obj._protected_method()            # PermissionError - protected access
-```
-
-### Inheritance Summary
-
-| Inheritance Type | Public Members | Protected Members | Private Members |
-|------------------|----------------|-------------------|-----------------|
-| **Public** (default) | Remain public | Remain protected | Remain private (inaccessible) |
-| **Protected** `@protected(Base)` | Become protected | Remain protected | Remain private (inaccessible) |
-| **Private** `@private(Base)` | Become private | Become private | Remain private (inaccessible) |
 
 ## Property Access Control
 
