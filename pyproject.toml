@@ -1,0 +1,99 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bouncer-access-control"
+version = "2.0.0"
+authors = [
+    {name = "Ma1achy", email = "malachydoherty16@gmail.com"},
+]
+description = "C++ style access control for Python classes"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Security",
+    "Topic :: Software Development :: Object Brokering",
+]
+keywords = ["access-control", "private", "protected", "public", "friend", "decorators", "oop", "security", "inheritance"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov",
+    "black",
+    "flake8",
+    "mypy",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/Ma1achy/Bouncer"
+"Bug Reports" = "https://github.com/Ma1achy/Bouncer/issues"
+"Source" = "https://github.com/Ma1achy/Bouncer"
+"Documentation" = "https://github.com/Ma1achy/Bouncer#readme"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["bouncer*"]
+exclude = ["tests*"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --strict-markers"
+testpaths = ["tests"]
+markers = [
+    "cpp_semantics: Tests that validate C++ access control semantics",
+    "access_control: Basic access control tests",
+    "inheritance: Inheritance-related tests",
+    "composition: Compositional decorator tests",
+    "edge_cases: Edge case and boundary tests",
+    "performance: Performance-related tests",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.coverage.run]
+source = ["bouncer"]
+omit = ["*/tests/*", "*/test_*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]

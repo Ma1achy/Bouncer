@@ -52,6 +52,14 @@ class AccessControlDecorator:
         """Apply access control to a function"""
         self._validate_function_usage(func)
         self._check_access_level_conflict(func)
+        
+        # Check if this is already a descriptor created by the bouncer system
+        from ..descriptors.base import AccessControlledDescriptor
+        if isinstance(func, AccessControlledDescriptor):
+            # Update the access level of the existing descriptor
+            func._access_level = self._access_level
+            return func
+        
         return DescriptorFactory.create_method_descriptor(func, self._access_level)
     
     def _handle_class_decoration(self, cls):
@@ -134,21 +142,31 @@ class AccessControlDecorator:
     def _check_access_level_conflict(self, func):
         """Check for conflicting access level decorators"""
         existing_level = None
+        has_friend_flag = False
         
-        # Check direct access level
+        # Check direct access level and friend flag
         if hasattr(func, '_access_level'):
             existing_level = getattr(func, '_access_level')
+            has_friend_flag = getattr(func, '_created_by_friend_decorator', False)
         # Check if this is a property containing an access-controlled descriptor
         elif isinstance(func, property) and hasattr(func.fget, '_access_level'):
             existing_level = getattr(func.fget, '_access_level')
+            has_friend_flag = getattr(func.fget, '_created_by_friend_decorator', False)
         # Check if this is a staticmethod containing an access-controlled descriptor
         elif isinstance(func, staticmethod) and hasattr(func.__func__, '_access_level'):
             existing_level = getattr(func.__func__, '_access_level')
+            has_friend_flag = getattr(func.__func__, '_created_by_friend_decorator', False)
         # Check if this is a classmethod containing an access-controlled descriptor
         elif isinstance(func, classmethod) and hasattr(func.__func__, '_access_level'):
             existing_level = getattr(func.__func__, '_access_level')
-        
+            has_friend_flag = getattr(func.__func__, '_created_by_friend_decorator', False)
+
         if existing_level is not None:
+            # Special case: Allow overriding or confirming access level if it was set by friend decorator
+            if has_friend_flag and existing_level == AccessLevel.PUBLIC:
+                # Allow explicit access level to override or confirm the friend decorator's default
+                return
+            
             # Provide more specific error messages based on the wrapper type
             if isinstance(func, property):
                 wrapper_info = " (found in property.fget)"

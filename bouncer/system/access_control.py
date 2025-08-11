@@ -1,7 +1,7 @@
 """
 Centralized access control system - acts as a facade
 """
-from typing import Type, Dict, Optional
+from typing import Type, Dict, Optional, Callable
 from ..core import AccessLevel, InheritanceType, is_in_internal_call
 from ..inspection import StackInspector
 from ..access import FriendshipManager, InheritanceAnalyzer, AccessChecker
@@ -35,12 +35,28 @@ class AccessControlSystem:
         self._enforcement_enabled = value
     
     def register_friend(self, target_class: Type, friend_class: Type) -> None:
-        """Register a friend relationship"""
+        """Register a friend class relationship"""
         self._friendship_manager.register_friend(target_class, friend_class)
     
+    def register_friend_function(self, target_class: Type, friend_function: Callable) -> None:
+        """Register a friend function relationship"""
+        self._friendship_manager.register_friend_function(target_class, friend_function)
+    
+    def register_friend_method(self, target_class: Type, friend_class: Type, method_name: str) -> None:
+        """Register a friend method relationship"""
+        self._friendship_manager.register_friend_method(target_class, friend_class, method_name)
+    
     def is_friend(self, target_class: Type, caller_class: Type) -> bool:
-        """Check if caller is a friend of target"""
+        """Check if caller class is a friend of target"""
         return self._friendship_manager.is_friend(target_class, caller_class)
+    
+    def is_friend_function(self, target_class: Type, function_name: str) -> bool:
+        """Check if function is a friend of target class"""
+        return self._friendship_manager.is_friend_function(target_class, function_name)
+    
+    def is_friend_method(self, target_class: Type, caller_class: Type, method_name: str) -> bool:
+        """Check if a specific method of caller class is a friend of target class"""
+        return self._friendship_manager.is_friend_method(target_class, caller_class, method_name)
     
     def register_method(self, class_name: str, method_name: str, access_level: AccessLevel) -> None:
         """Register a method's access level"""

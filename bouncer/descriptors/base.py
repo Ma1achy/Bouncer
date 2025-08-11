@@ -27,6 +27,26 @@ class AccessControlledDescriptor(ABC):
         from ..system.access_control import get_access_control_system
         access_control = get_access_control_system()
         access_control.register_method(owner.__name__, name, self._access_level)
+        
+        # Check if this method was decorated with @friend and register it
+        self._register_friend_method_if_needed(access_control, owner, name)
+    
+    def _register_friend_method_if_needed(self, access_control, owner: Type, name: str) -> None:
+        """Register method as friend if it was decorated with @friend"""
+        func = self._func_or_value
+        
+        # Check the function itself
+        if hasattr(func, '_bouncer_friend_target') and hasattr(func, '_bouncer_is_friend_method'):
+            target_class = func._bouncer_friend_target
+            access_control.register_friend_method(target_class, owner, name)
+            access_control.emit_event('friend_method_established', {
+                'target_class': target_class.__name__,
+                'friend_class': owner.__name__,
+                'method_name': name
+            })
+            # Clean up the temporary attributes
+            delattr(func, '_bouncer_friend_target')
+            delattr(func, '_bouncer_is_friend_method')
     
     @abstractmethod
     def __get__(self, obj, objtype=None):
@@ -38,18 +58,22 @@ class AccessControlledDescriptor(ABC):
         # Import here to avoid circular import
         from ..system.access_control import get_access_control_system
         from ..inspection.stack_inspector import StackInspector
-        from ..core.value_objects import CallerInfo
-        
+
         access_control = get_access_control_system()
-        
+
         # If enforcement is disabled, allow all access
         if not access_control.enforcement_enabled:
             return
         
+        # Safety check: if _owner is None, __set_name__ hasn't been called yet
+        # This can happen during class construction - allow access in this case
+        if self._owner is None or self._name is None:
+            return
+
         # Get caller info from stack
         stack_inspector = StackInspector()
         caller_info = stack_inspector.get_caller_info()
-        
+
         # Note: We don't apply fallback logic here anymore
         # If stack inspection fails, caller_info.caller_class will be None
         # which correctly represents external/module-level access

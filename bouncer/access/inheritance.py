@@ -21,6 +21,10 @@ class InheritanceAnalyzer:
     def get_inherited_access_level(self, target_class: Type, method_name: str, 
                                   original_access: AccessLevel, caller_class: Type) -> AccessLevel:
         """Determine effective access level for inherited methods"""
+        # Handle None method name gracefully (can happen during descriptor initialization)
+        if method_name is None:
+            return original_access
+            
         for base_class in target_class.__mro__[1:]:
             if hasattr(base_class, method_name):
                 inheritance_type = self.get_inheritance_type(target_class, base_class)

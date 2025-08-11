@@ -27,6 +27,10 @@ class AccessChecker:
         
         caller_class = caller_info.caller_class
         
+        # Check for friend access first (unified logic)
+        if self._check_friend_access(target_class, access_level, caller_info):
+            return True
+        
         # Use instance class if provided for inheritance analysis
         actual_target_class = instance_class if instance_class else target_class
         
@@ -65,42 +69,98 @@ class AccessChecker:
             actual_target_class, method_name, access_level, caller_class
         )
         
-        return self._check_access_by_level(effective_access, target_class, caller_class)
+        return self._check_access_by_level(effective_access, target_class, caller_class, caller_info)
+    
+    def _check_friend_access(self, target_class: Type, access_level: AccessLevel, caller_info: CallerInfo) -> bool:
+        """Unified friend access checking logic"""
+        # Only check friends for private and protected access
+        if access_level not in [AccessLevel.PRIVATE, AccessLevel.PROTECTED]:
+            return False
+        
+        caller_class = caller_info.caller_class
+        caller_method = caller_info.caller_method
+        
+        # Additional check: Look for friend attributes on the caller function itself
+        # This handles cases where friend functions are wrapped in standard descriptors
+        if caller_class and caller_method:
+            try:
+                caller_func = getattr(caller_class, caller_method, None)
+                if caller_func:
+                    # Check if it's a standard classmethod or staticmethod containing a friend function
+                    actual_func = None
+                    if isinstance(caller_func, classmethod):
+                        actual_func = caller_func.__func__
+                    elif isinstance(caller_func, staticmethod):
+                        actual_func = caller_func.__func__
+                    elif hasattr(caller_func, '__func__'):
+                        actual_func = caller_func.__func__
+                    
+                    # Check if the actual function has friend attributes
+                    if (actual_func and 
+                        hasattr(actual_func, '_bouncer_friend_target') and
+                        hasattr(actual_func, '_bouncer_is_friend_method') and
+                        actual_func._bouncer_friend_target is target_class):
+                        return True
+            except (AttributeError, TypeError):
+                pass
+        
+        # If normal stack inspection didn't find a caller class, check thread-local staticmethod context
+        if caller_class is None:
+            try:
+                from ..descriptors.static_method import _thread_local
+                staticmethod_context = getattr(_thread_local, 'staticmethod_context', None)
+                if staticmethod_context:
+                    caller_class = staticmethod_context['caller_class']
+                    caller_method = staticmethod_context['caller_method']
+            except (ImportError, AttributeError):
+                pass
+        
+        if not caller_method:
+            return False
+        
+        # Check for friend function access (when caller_class is None)
+        if caller_class is None:
+            # Check if it's a friend function
+            if self._friendship_manager.is_friend_function(target_class, caller_method):
+                return True
+            
+            # Also check for staticmethod friend access (staticmethods have caller_class = None)
+            if self._friendship_manager.is_staticmethod_friend(target_class, caller_method):
+                return True
+        else:
+            # Check for friend method access (when caller_class is not None)
+            if self._friendship_manager.is_friend_method(target_class, caller_class, caller_method):
+                return True
+            
+            # Check for friend class access
+            if self._friendship_manager.is_friend(target_class, caller_class):
+                return True
+        
+        return False
     
     def _check_access_by_level(self, access_level: AccessLevel, 
-                              target_class: Type, caller_class: Type) -> bool:
+                              target_class: Type, caller_class: Type, caller_info: CallerInfo = None) -> bool:
         """Check access based on access level"""
         if access_level == AccessLevel.PUBLIC:
             return True
         
         if access_level == AccessLevel.PRIVATE:
-            return self._check_private_access(target_class, caller_class)
+            return self._check_private_access(target_class, caller_class, caller_info)
         
         if access_level == AccessLevel.PROTECTED:
-            return self._check_protected_access(target_class, caller_class)
+            return self._check_protected_access(target_class, caller_class, caller_info)
         
         return False
     
-    def _check_private_access(self, target_class: Type, caller_class: Type) -> bool:
-        """Check private access (same class or friends only)"""
-        if not caller_class:
-            return False
-        
-        # Check friend access
-        if self._friendship_manager.is_friend(target_class, caller_class):
-            return True
-        
-        # Private methods are only accessible from same class
-        return False
+    def _check_private_access(self, target_class: Type, caller_class: Type, caller_info: CallerInfo = None) -> bool:
+        """Check private access (same class only - friends already checked in can_access)"""
+        # Private methods are only accessible from same class (if caller_class exists)
+        return caller_class == target_class if caller_class else False
     
-    def _check_protected_access(self, target_class: Type, caller_class: Type) -> bool:
-        """Check protected access (inheritance hierarchy or friends)"""
+    def _check_protected_access(self, target_class: Type, caller_class: Type, caller_info: CallerInfo = None) -> bool:
+        """Check protected access (inheritance hierarchy - friends already checked in can_access)"""        
         if not caller_class:
             return False
-        
-        # Check friend access
-        if self._friendship_manager.is_friend(target_class, caller_class):
-            return True
         
         # Check inheritance access
         if issubclass(caller_class, target_class) or issubclass(target_class, caller_class):

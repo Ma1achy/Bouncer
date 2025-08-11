@@ -1,0 +1,9 @@
+include README.md
+include LICENSE
+include pytest.ini
+recursive-include bouncer *.py
+recursive-exclude tests *
+recursive-exclude decorators *
+global-exclude *.pyc
+global-exclude __pycache__
+global-exclude .pytest_cache
