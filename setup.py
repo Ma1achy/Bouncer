@@ -1,5 +1,6 @@
+#!/usr/bin/env python3
 """
-Setup script for Bouncer Access Control System
+Setup script for Limen Access Control System
 
 This file is kept for backwards compatibility.
 The actual package configuration is in pyproject.toml

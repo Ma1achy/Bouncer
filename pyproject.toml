@@ -3,14 +3,14 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "limen"
+name = "pylimen"
 version = "1.0.0"
 authors = [
     {name = "Ma1achy", email = "malachydoherty16@gmail.com"},
 ]
-description = "C++ style access control for Python classes"
+description = "C++ style access control for Python classes with friend relationships and inheritance control"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 requires-python = ">=3.8"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -26,7 +26,19 @@ classifiers = [
     "Topic :: Security",
     "Topic :: Software Development :: Object Brokering",
 ]
-keywords = ["access-control", "private", "protected", "public", "friend", "decorators", "oop", "security", "inheritance", "limen", "threshold"]
+keywords = [
+    "access-control", 
+    "private", 
+    "protected", 
+    "public", 
+    "friend", 
+    "decorators", 
+    "oop", 
+    "security", 
+    "inheritance", 
+    "encapsulation",
+    "cpp-style"
+]
 
 [project.optional-dependencies]
 dev = [
@@ -53,40 +65,24 @@ minversion = "6.0"
 addopts = "-ra -q --strict-markers"
 testpaths = ["tests"]
 markers = [
-    "cpp_semantics: Tests that validate C++ access control semantics",
     "access_control: Basic access control tests",
     "inheritance: Inheritance-related tests",
-    "composition: Compositional decorator tests",
+    "friend_methods: Friend relationship tests",
     "edge_cases: Edge case and boundary tests",
-    "performance: Performance-related tests",
 ]
 
 [tool.black]
 line-length = 88
 target-version = ['py38']
 include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | build
-  | dist
-)/
-'''
 
 [tool.mypy]
 python_version = "3.8"
 warn_return_any = true
 warn_unused_configs = true
-disallow_untyped_defs = true
 
 [tool.coverage.run]
-source = ["bouncer"]
+source = ["limen"]
 omit = ["*/tests/*", "*/test_*"]
 
 [tool.coverage.report]

@@ -1,3 +1,37 @@
+Metadata-Version: 2.4
+Name: pylimen
+Version: 1.0.0
+Summary: C++ style access control for Python classes with friend relationships and inheritance control
+Author-email: Ma1achy <malachydoherty16@gmail.com>
+License-Expression: MIT
+Project-URL: Homepage, https://github.com/Ma1achy/Limen
+Project-URL: Bug Reports, https://github.com/Ma1achy/Limen/issues
+Project-URL: Source, https://github.com/Ma1achy/Limen
+Project-URL: Documentation, https://github.com/Ma1achy/Limen#readme
+Keywords: access-control,private,protected,public,friend,decorators,oop,security,inheritance,encapsulation,cpp-style
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Security
+Classifier: Topic :: Software Development :: Object Brokering
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Provides-Extra: dev
+Requires-Dist: pytest>=6.0; extra == "dev"
+Requires-Dist: pytest-cov; extra == "dev"
+Requires-Dist: black; extra == "dev"
+Requires-Dist: flake8; extra == "dev"
+Requires-Dist: mypy; extra == "dev"
+Dynamic: license-file
+
 # Limen
 
 Limen is an access control system that provides fine-grained security and encapsulation for Python classes. It implements true C++ semantics including public, protected, and private access levels, friend relationships, and inheritance-based access control with automatic detection of access levels based on method naming conventions.
@@ -22,7 +56,7 @@ Limen is an access control system that provides fine-grained security and encaps
 
 ### From PyPI (Recommended)
 ```bash
-pip install pylimen
+pip install limen
 ```
 
 ### From Source
