@@ -293,7 +293,7 @@ result = helper.access_target(derived_obj)  # Works - friend relationship preser
 # derived_obj._protected_method()           # PermissionError - protected access
 ```
 
-\n</details>\n\n<details>\n<summary><strong>Implicit Access Control</strong></summary>\n\n## Implicit Access Control
+\n</details><details>\n<summary><strong>Implicit Access Control</strong></summary>## Implicit Access Control
 
 Limen provides automatic access level detection based on Python naming conventions. When inheritance decorators are applied, methods are automatically wrapped with appropriate access control based on their names.
 
@@ -395,7 +395,7 @@ obj = Derived()
 obj._underscore_but_public()       # PermissionError - but protected inheritance affects it
 ```
 
-\n</details>\n\n<details>\n<summary><strong>Friend Relationships</strong></summary>\n\n## Friend Relationships
+\n</details><details>\n<summary><strong>Friend Relationships</strong></summary>## Friend Relationships
 
 Friend classes and functions can access private and protected members of target classes, providing controlled access across class boundaries.
 
@@ -524,7 +524,7 @@ helper = Helper()
 result3 = helper.access_property(target)  # Works
 ```
 
-\n</details>\n\n<details>\n<summary><strong>Dual-Layer Security: Access Modifiers on Friend Methods</strong></summary>\n\n## Dual-Layer Security: Access Modifiers on Friend Methods
+\n</details><details>\n<summary><strong>Dual-Layer Security: Access Modifiers on Friend Methods</strong></summary>## Dual-Layer Security: Access Modifiers on Friend Methods
 
 **Advanced Feature**: Apply access modifiers to friend methods themselves for fine-grained control.
 
@@ -630,7 +630,7 @@ helper.internal_class_operation(target)
 # Helper.private_class_helper(target)     # PermissionError
 ```
 
-\n</details>\n\n<details>\n<summary><strong>Security Features</strong></summary>\n\n## Security Features
+\n</details><details>\n<summary><strong>Security Features</strong></summary>## Security Features
 
 ### Name Mangling Bypass Prevention
 
@@ -739,7 +739,7 @@ unauthorized = UnauthorizedClass()
 
 This security feature ensures that Limen's access control cannot be circumvented through Python's name mangling, providing true encapsulation and security for your private methods.
 
-\n</details>\n\n<details>\n<summary><strong>Property Access Control</strong></summary>\n\n## Property Access Control
+\n</details><details>\n<summary><strong>Property Access Control</strong></summary>## Property Access Control
 
 Control getter and setter access independently with sophisticated property decorators.
 
@@ -824,7 +824,7 @@ friend = Friend()
 result = friend.access_property(target)  # Works
 ```
 
-\n</details>\n\n<details>\n<summary><strong>System Management</strong></summary>\n\n## System Management
+\n</details><details>\n<summary><strong>System Management</strong></summary>## System Management
 
 ### Runtime Control
 
@@ -883,7 +883,7 @@ from limen import reset_system
 reset_system()
 ```
 
-\n</details>\n\n<details>\n<summary><strong>Error Handling</strong></summary>\n\n## Error Handling
+\n</details><details>\n<summary><strong>Error Handling</strong></summary>## Error Handling
 
 Limen provides comprehensive, contextual exception types with enhanced error messages that include actual code suggestions and detailed explanations.
 
@@ -1059,7 +1059,7 @@ Limen's error system is built with a modular, maintainable architecture:
 
 This modular design ensures that error messages are consistent, helpful, and maintainable as the system grows.
 
-\n</details>\n\n<details>\n<summary><strong>Testing and Development</strong></summary>\n\n## Testing and Development
+\n</details><details>\n<summary><strong>Testing and Development</strong></summary>## Testing and Development
 
 ### Testing with Enforcement Control
 
@@ -1128,13 +1128,13 @@ is_friend = friendship_manager.is_friend(TargetClass, FriendClass)
 print(f"FriendClass is friend of TargetClass: {is_friend}")
 ```
 
-\n</details>\n\n<details>\n<summary><strong>Requirements</strong></summary>\n\n## Requirements
+\n</details><details>\n<summary><strong>Requirements</strong></summary>## Requirements
 
 - **Python 3.12+**
 - **No external dependencies** for core functionality
 - **Optional development dependencies** for testing and development
 
-\n</details>\n\n<details>\n<summary><strong>Development Setup</strong></summary>\n\n## Development Setup
+\n</details><details>\n<summary><strong>Development Setup</strong></summary>## Development Setup
 
 ### Clone and Setup
 
@@ -1173,7 +1173,7 @@ mypy limen/
 flake8 limen/ tests/
 ```
 
-\n</details>\n\n<details>\n<summary><strong>Contributing</strong></summary>\n\n## Contributing
+\n</details><details>\n<summary><strong>Contributing</strong></summary>## Contributing
 
 Contributions are welcome! Please feel free to submit pull requests, report bugs, or suggest features.
 
@@ -1184,4 +1184,4 @@ Contributions are welcome! Please feel free to submit pull requests, report bugs
 3. **Follow code style** (Black formatting, type hints)
 4. **Ensure compatibility** with Python 3.8+
 
-\n</details>\n\n<details>\n<summary><strong>License</strong></summary>\n\n## License\n\nMIT License - see [LICENSE](LICENSE) file for details.\n\n</details>
+\n</details><details>\n<summary><strong>License</strong></summary>## LicenseMIT License - see [LICENSE](LICENSE) file for details.</details>
