@@ -61,6 +61,6 @@ __all__ = [
     'DecoratorUsageError'
 ]
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 __author__ = "Limen Development Team"
 __description__ = "C++ style access control for Python classes"
