@@ -1,9 +1,5 @@
 # Bouncer
 
-An implementation of C++ style access levels, friend relationships, and inheritance semantics for Python with automatic implicit access control based on naming conventions.
-
-## Overview
-
 Bouncer is an access control system that provides fine-grained security and encapsulation for Python classes. It implements true C++ semantics including public, protected, and private access levels, friend relationships, and inheritance-based access control with automatic detection of access levels based on method naming conventions.
 
 ### Key Features
@@ -16,7 +12,7 @@ Bouncer is an access control system that provides fine-grained security and enca
 - **Descriptor Support**: Full compatibility with `@staticmethod`, `@classmethod`, `@property` decorators
 - **Multiple Inheritance**: Support for complex inheritance hierarchies with proper access control
 - **Runtime Management**: Dynamic enable/disable enforcement, metrics, and debugging capabilities
-- **Comprehensive Error Handling**: Specific exception types for different access control violations
+- **Error Handling**: Specific exception types for different access control violations
 - **Zero Dependencies**: Pure Python implementation with no external requirements
 
 ## Installation
