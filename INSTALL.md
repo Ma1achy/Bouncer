@@ -2,22 +2,22 @@
 
 ## Quick Installation
 
-### From PyPI (when published)
+### From PyPI
 ```bash
-pip install bouncer-access-control
+pip install pylimen
 ```
 
 ### From Source (Current)
 ```bash
-git clone https://github.com/Ma1achy/Bouncer.git
-cd Bouncer
+git clone https://github.com/Ma1achy/Limen.git
+cd Limen
 pip install -e .
 ```
 
 ### Development Installation
 ```bash
-git clone https://github.com/Ma1achy/Bouncer.git
-cd Bouncer
+git clone https://github.com/Ma1achy/Limen.git
+cd Limen
 pip install -e .[dev]
 ```
 
@@ -65,16 +65,16 @@ pip install -e .
 pytest
 
 # Run tests with coverage
-pytest --cov=bouncer --cov-report=html
+pytest --cov=limen --cov-report=html
 
 # Format code
-black bouncer tests
+black limen tests
 
 # Lint code
-flake8 bouncer tests
+flake8 limen tests
 
 # Type check
-mypy bouncer
+mypy limen
 
 # Build package
 python -m build
@@ -104,14 +104,14 @@ twine check dist/*
 
 4. **Test installation:**
    ```bash
-   pip install bouncer-access-control
+   pip install pylimen
    ```
 
 ## Project Structure
 
 ```
-Bouncer/
-├── bouncer/                 # Main package
+Limen/
+├── limen/                   # Main package
 │   ├── __init__.py         # Public API
 │   ├── access/             # Access control logic
 │   ├── core/               # Core types and protocols
@@ -136,7 +136,7 @@ Bouncer/
 
 Update version in:
 - `pyproject.toml` (project.version)
-- `bouncer/__init__.py` (__version__)
+- `limen/__init__.py` (__version__)
 
 ## Testing
 

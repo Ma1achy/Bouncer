@@ -1,5 +1,5 @@
 """
-Value objects for the Bouncer Access Control System
+Value objects for the Limen Access Control System
 """
 from typing import Type, Optional
 

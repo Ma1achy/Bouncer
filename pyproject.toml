@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pylimen"
-version = "1.0.0"
+version = "1.0.1"
 authors = [
     {name = "Ma1achy", email = "malachydoherty16@gmail.com"},
 ]

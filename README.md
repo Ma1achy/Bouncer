@@ -857,7 +857,7 @@ print(f"Enforcement enabled: {is_enforcement_enabled()}")
 ### System Metrics and Debugging
 
 ```python
-from bouncer.system import get_access_control_system
+from limen.system import get_access_control_system
 
 # Get system instance for advanced operations
 access_control = get_access_control_system()
@@ -1007,8 +1007,8 @@ print(f"FriendClass is friend of TargetClass: {is_friend}")
 ### Clone and Setup
 
 ```bash
-git clone https://github.com/Ma1achy/Bouncer.git
-cd Bouncer
+git clone https://github.com/Ma1achy/Limen.git
+cd Limen
 pip install -e .[dev]
 ```
 

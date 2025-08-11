@@ -1,5 +1,5 @@
 """
-Core enums for the Bouncer Access Control System
+Core enums for the Limen Access Control System
 """
 from enum import Enum
 

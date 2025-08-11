@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Development helper script for Bouncer
+Development helper script for Limen
 Usage: python dev.py <command>
 
 Commands:
@@ -35,19 +35,19 @@ def test():
 
 def test_cov():
     """Run tests with coverage"""
-    run_cmd([sys.executable, "-m", "pytest", "--cov=bouncer", "--cov-report=html", "--cov-report=term"])
+    run_cmd([sys.executable, "-m", "pytest", "--cov=limen", "--cov-report=html", "--cov-report=term"])
 
 def lint():
     """Run linting"""
-    run_cmd([sys.executable, "-m", "flake8", "bouncer", "tests"])
+    run_cmd([sys.executable, "-m", "flake8", "limen", "tests"])
 
 def format_code():
     """Format code"""
-    run_cmd([sys.executable, "-m", "black", "bouncer", "tests"])
+    run_cmd([sys.executable, "-m", "black", "limen", "tests"])
 
 def type_check():
     """Run type checking"""
-    run_cmd([sys.executable, "-m", "mypy", "bouncer"])
+    run_cmd([sys.executable, "-m", "mypy", "limen"])
 
 def build():
     """Build the package"""

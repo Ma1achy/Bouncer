@@ -32,9 +32,9 @@ def reset_system() -> str:
     
     # Clean up wrapped methods
     for obj in gc.get_objects():
-        if hasattr(obj, '_bouncer_wrapped'):
+        if hasattr(obj, '_limen_wrapped'):
             try:
-                delattr(obj, '_bouncer_wrapped')
+                delattr(obj, '_limen_wrapped')
             except (AttributeError, TypeError):
                 pass
     

@@ -1,5 +1,5 @@
 """
-Validation utilities for the Bouncer Access Control System
+Validation utilities for the Limen Access Control System
 """
 from typing import Callable
 from .error_messages import format_invalid_usage_message, format_bare_class_decoration_message

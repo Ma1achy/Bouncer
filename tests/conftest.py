@@ -6,8 +6,8 @@ import pytest
 from limen import reset_system
 
 @pytest.fixture(autouse=True)
-def reset_bouncer_system():
-    """Reset bouncer system before each test"""
+def reset_limen_system():
+    """Reset limen system before each test"""
     reset_system()
     yield
     reset_system()

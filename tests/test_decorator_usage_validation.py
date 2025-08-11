@@ -3,7 +3,7 @@ Test file to demonstrate and fix decorator usage validation issues
 """
 import pytest
 
-# Import from the bouncer package
+# Import from the limen package
 from limen import private, protected
 
 

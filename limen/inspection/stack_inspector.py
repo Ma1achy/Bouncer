@@ -1,8 +1,7 @@
 """
-Stack inspection logic for the Bouncer Access Control System
+Stack inspection logic for the Limen Access Control System
 """
 import inspect
-import threading
 from typing import Type
 from ..core import CallerInfo
 
@@ -35,7 +34,7 @@ class StackInspector:
         for i, frame_info in enumerate(stack[1:], 1):
             frame_locals = frame_info.frame.f_locals
             
-            # Skip bouncer internal frames first
+            # Skip limen internal frames first
             if self._is_internal_frame(frame_info):
                 continue
             
@@ -109,9 +108,9 @@ class StackInspector:
         return False
     
     def _is_internal_frame(self, frame_info) -> bool:
-        """Check if frame is internal (pytest or bouncer)"""
+        """Check if frame is internal (pytest or limen)"""
         return (self._is_pytest_internal_frame(frame_info) or 
-                self._is_bouncer_wrapper_frame(frame_info))
+                self._is_limen_wrapper_frame(frame_info))
     
     def _is_pytest_internal_frame(self, frame_info) -> bool:
         """Check if a frame is part of pytest's internal execution"""
@@ -121,7 +120,7 @@ class StackInspector:
         return any(pytest_module in module_name or pytest_module in filename 
                   for pytest_module in self.PYTEST_MODULES)
     
-    def _is_bouncer_wrapper_frame(self, frame_info) -> bool:
+    def _is_limen_wrapper_frame(self, frame_info) -> bool:
         """Check if a frame is one of our wrapper functions"""
         return frame_info.function in self.WRAPPER_FUNCTIONS
     

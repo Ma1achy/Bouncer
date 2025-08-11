@@ -50,7 +50,7 @@ class AccessControlDecorator:
         self._validate_function_usage(func)
         self._check_access_level_conflict(func)
         
-        # Check if this is already a descriptor created by the bouncer system
+        # Check if this is already a descriptor created by the limen system
         from ..descriptors.base import AccessControlledDescriptor
         if isinstance(func, AccessControlledDescriptor):
             # Update the access level of the existing descriptor

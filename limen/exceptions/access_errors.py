@@ -1,5 +1,5 @@
 """
-Custom exception classes for the Bouncer Access Control System
+Custom exception classes for the Limen Access Control System
 """
 
 

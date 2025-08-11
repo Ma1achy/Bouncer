@@ -10,10 +10,10 @@ class MethodWrapperMixin:
     """Mixin providing common wrapper functionality for method descriptors"""
     
     def _create_wrapper_with_context(self, wrapper_func, context_data=None):
-        """Create a wrapper function with bouncer context attributes"""
+        """Create a wrapper function with limen context attributes"""
         # Store the owner class and method name for stack inspection
-        wrapper_func._bouncer_owner_class = self._owner  
-        wrapper_func._bouncer_method_name = self._name
+        wrapper_func._limen_owner_class = self._owner  
+        wrapper_func._limen_method_name = self._name
         
         # Store any additional context data
         if context_data:
@@ -53,8 +53,8 @@ class AccessControlledDescriptor(ABC, MethodWrapperMixin):
         func = self._func_or_value
         
         # Check the function itself
-        if hasattr(func, '_bouncer_friend_target') and hasattr(func, '_bouncer_is_friend_method'):
-            target_class = func._bouncer_friend_target
+        if hasattr(func, '_limen_friend_target') and hasattr(func, '_limen_is_friend_method'):
+            target_class = func._limen_friend_target
             access_control.register_friend_method(target_class, owner, name)
             access_control.emit_event('friend_method_established', {
                 'target_class': target_class.__name__,
@@ -62,8 +62,8 @@ class AccessControlledDescriptor(ABC, MethodWrapperMixin):
                 'method_name': name
             })
             # Clean up the temporary attributes
-            delattr(func, '_bouncer_friend_target')
-            delattr(func, '_bouncer_is_friend_method')
+            delattr(func, '_limen_friend_target')
+            delattr(func, '_limen_is_friend_method')
     
     @abstractmethod
     def __get__(self, obj, objtype=None):

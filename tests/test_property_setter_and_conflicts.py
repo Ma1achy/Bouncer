@@ -10,7 +10,7 @@ import pytest
 import sys
 import os
 
-# Add the bouncer_refactored module to path
+# Add the limen module to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from limen import private, protected, public

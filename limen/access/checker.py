@@ -91,9 +91,9 @@ class AccessChecker:
                     
                     # Check if the actual function has friend attributes
                     if (actual_func and 
-                        hasattr(actual_func, '_bouncer_friend_target') and
-                        hasattr(actual_func, '_bouncer_is_friend_method') and
-                        actual_func._bouncer_friend_target is target_class):
+                        hasattr(actual_func, '_limen_friend_target') and
+                        hasattr(actual_func, '_limen_is_friend_method') and
+                        actual_func._limen_friend_target is target_class):
                         return True
             except (AttributeError, TypeError):
                 pass

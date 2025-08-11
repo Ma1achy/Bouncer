@@ -47,7 +47,7 @@ class DescriptorFactory:
     @staticmethod
     def _register_friend_method_if_needed(func: Callable) -> None:
         """Register a method as a friend if it was decorated with @friend"""
-        if func and hasattr(func, '_bouncer_friend_target') and hasattr(func, '_bouncer_is_friend_method'):
+        if func and hasattr(func, '_limen_friend_target') and hasattr(func, '_limen_is_friend_method'):
             # We can't register now because we don't know the owner class yet
             # The descriptor will handle this in __set_name__
             pass

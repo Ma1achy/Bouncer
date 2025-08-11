@@ -1,5 +1,5 @@
 """
-Protocol definitions for the Bouncer Access Control System
+Protocol definitions for the Limen Access Control System
 """
 from typing import Type, Protocol, runtime_checkable
 from .enums import AccessLevel, InheritanceType

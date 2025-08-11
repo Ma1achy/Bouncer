@@ -1,7 +1,7 @@
 """
 Test Name Mangling Bypass Prevention
 
-This test suite verifies that Bouncer properly prevents bypassing access control
+This test suite verifies that Limen properly prevents bypassing access control
 through Python's name mangling mechanism. It ensures that private methods cannot
 be accessed externally via `obj._ClassName__method()` syntax while preserving
 legitimate internal access and friend relationships.

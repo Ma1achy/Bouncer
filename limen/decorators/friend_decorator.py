@@ -31,14 +31,14 @@ def friend(target_class: Type) -> Callable:
             if params and params[0] in ('self', 'cls'):
                 # This is a method that will be bound to a class
                 print("  -> Marking as friend method")
-                friend_entity._bouncer_friend_target = target_class
-                friend_entity._bouncer_is_friend_method = True
+                friend_entity._limen_friend_target = target_class
+                friend_entity._limen_is_friend_method = True
                 
                 # For methods with 'cls' parameter, we need to handle the case where
                 # @classmethod might be applied after @friend. We'll mark the function
                 # with a special attribute and let the metaclass handle it.
                 if params and params[0] == 'cls':
-                    friend_entity._bouncer_expect_classmethod = True
+                    friend_entity._limen_expect_classmethod = True
                     return friend_entity
                 
                 # Create a public descriptor to ensure __set_name__ is called
@@ -60,8 +60,8 @@ def friend(target_class: Type) -> Callable:
             # Handle classmethod and staticmethod objects uniformly
             original_func = friend_entity.__func__
             if inspect.isfunction(original_func):
-                original_func._bouncer_friend_target = target_class
-                original_func._bouncer_is_friend_method = True
+                original_func._limen_friend_target = target_class
+                original_func._limen_is_friend_method = True
                 # Create appropriate descriptor based on type
                 from ..descriptors.factory import DescriptorFactory
                 from ..core.enums import AccessLevel
@@ -76,12 +76,12 @@ def friend(target_class: Type) -> Callable:
             print(f"  -> Is function: {inspect.isfunction(original_func)}")
             if inspect.isfunction(original_func):
                 print(f"  -> Setting friend attributes on function {id(original_func)}")
-                original_func._bouncer_friend_target = target_class
-                original_func._bouncer_is_friend_method = True
-                print(f"  -> Set _bouncer_friend_target to {target_class}")
-                print(f"  -> Checking if attributes were set...")
-                print(f"  -> Has _bouncer_friend_target: {hasattr(original_func, '_bouncer_friend_target')}")
-                print(f"  -> Has _bouncer_is_friend_method: {hasattr(original_func, '_bouncer_is_friend_method')}")
+                original_func._limen_friend_target = target_class
+                original_func._limen_is_friend_method = True
+                print(f"  -> Set _limen_friend_target to {target_class}")
+                print("  -> Checking if attributes were set...")
+                print(f"  -> Has _limen_friend_target: {hasattr(original_func, '_limen_friend_target')}")
+                print(f"  -> Has _limen_is_friend_method: {hasattr(original_func, '_limen_is_friend_method')}")
             else:
                 print(f"  -> WARNING: Original func is not a function, it's {type(original_func)}")
             # Don't emit event here, will be emitted when the descriptor's __set_name__ is called
@@ -97,8 +97,8 @@ def _register_friend_method_if_needed(method: Callable, owner_class: Type) -> No
     Register a method as a friend if it was decorated with @friend.
     This is called when a class is created and methods are bound.
     """
-    if hasattr(method, '_bouncer_friend_target') and hasattr(method, '_bouncer_is_friend_method'):
-        target_class = method._bouncer_friend_target
+    if hasattr(method, '_limen_friend_target') and hasattr(method, '_limen_is_friend_method'):
+        target_class = method._limen_friend_target
         access_control = get_access_control_system()
         access_control.register_friend_method(target_class, owner_class, method.__name__)
         access_control.emit_event('friend_method_established', {
@@ -107,5 +107,5 @@ def _register_friend_method_if_needed(method: Callable, owner_class: Type) -> No
             'method_name': method.__name__
         })
         # Clean up the temporary attributes
-        delattr(method, '_bouncer_friend_target')
-        delattr(method, '_bouncer_is_friend_method')
+        delattr(method, '_limen_friend_target')
+        delattr(method, '_limen_is_friend_method')

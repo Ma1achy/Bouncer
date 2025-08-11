@@ -1,5 +1,5 @@
 """
-Bouncer Access Control System - Refactored with better design patterns
+Limen Access Control System - Refactored with better design patterns
 
 A comprehensive access control system for Python classes that provides:
 - C++ style access levels (private, protected, public) 
@@ -62,6 +62,6 @@ __all__ = [
     'InvalidDecoratorUsageError', 'FriendshipError'
 ]
 
-__version__ = "2.0.0"
-__author__ = "Bouncer Development Team"
+__version__ = "1.0.1"
+__author__ = "Limen Development Team"
 __description__ = "C++ style access control for Python classes"
