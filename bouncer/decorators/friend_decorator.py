@@ -56,28 +56,18 @@ def friend(target_class: Type) -> Callable:
                     'target_class': target_class.__name__,
                     'friend_function': friend_entity.__name__
                 })
-        elif isinstance(friend_entity, classmethod):
-            # Handle classmethod objects
+        elif isinstance(friend_entity, (classmethod, staticmethod)):
+            # Handle classmethod and staticmethod objects uniformly
             original_func = friend_entity.__func__
             if inspect.isfunction(original_func):
                 original_func._bouncer_friend_target = target_class
                 original_func._bouncer_is_friend_method = True
-                # Create a public classmethod descriptor (preserving classmethod nature)
-                from ..descriptors.class_method import ClassMethodDescriptor
-                from ..core.enums import AccessLevel
-                descriptor = ClassMethodDescriptor(original_func, AccessLevel.PUBLIC)
-                descriptor._created_by_friend_decorator = True
-                return descriptor
-        elif isinstance(friend_entity, staticmethod):
-            # Handle staticmethod objects  
-            original_func = friend_entity.__func__
-            if inspect.isfunction(original_func):
-                original_func._bouncer_friend_target = target_class
-                original_func._bouncer_is_friend_method = True
-                # Create a public staticmethod descriptor
+                # Create appropriate descriptor based on type
                 from ..descriptors.factory import DescriptorFactory
                 from ..core.enums import AccessLevel
-                return DescriptorFactory.create_method_descriptor(friend_entity, AccessLevel.PUBLIC)
+                descriptor = DescriptorFactory.create_method_descriptor(friend_entity, AccessLevel.PUBLIC)
+                descriptor._created_by_friend_decorator = True
+                return descriptor
         elif hasattr(friend_entity, '_func_or_value') and hasattr(friend_entity, '_access_level'):
             # This is an access control descriptor (e.g., from @private)
             print("  -> Access control descriptor detected")

@@ -86,14 +86,8 @@ class AccessChecker:
             try:
                 caller_func = getattr(caller_class, caller_method, None)
                 if caller_func:
-                    # Check if it's a standard classmethod or staticmethod containing a friend function
-                    actual_func = None
-                    if isinstance(caller_func, classmethod):
-                        actual_func = caller_func.__func__
-                    elif isinstance(caller_func, staticmethod):
-                        actual_func = caller_func.__func__
-                    elif hasattr(caller_func, '__func__'):
-                        actual_func = caller_func.__func__
+                    # Extract the actual function from various descriptor types
+                    actual_func = self._extract_function_from_descriptor(caller_func)
                     
                     # Check if the actual function has friend attributes
                     if (actual_func and 
@@ -138,6 +132,16 @@ class AccessChecker:
         
         return False
     
+    def _extract_function_from_descriptor(self, descriptor):
+        """Extract the underlying function from various descriptor types"""
+        if isinstance(descriptor, (classmethod, staticmethod)):
+            return descriptor.__func__
+        elif hasattr(descriptor, '__func__'):
+            return descriptor.__func__
+        elif hasattr(descriptor, '_func_or_value'):
+            return descriptor._func_or_value
+        return None
+
     def _check_access_by_level(self, access_level: AccessLevel, 
                               target_class: Type, caller_class: Type, caller_info: CallerInfo = None) -> bool:
         """Check access based on access level"""

@@ -6,7 +6,24 @@ from typing import Any, Optional, Type
 from ..core import AccessLevel
 
 
-class AccessControlledDescriptor(ABC):
+class MethodWrapperMixin:
+    """Mixin providing common wrapper functionality for method descriptors"""
+    
+    def _create_wrapper_with_context(self, wrapper_func, context_data=None):
+        """Create a wrapper function with bouncer context attributes"""
+        # Store the owner class and method name for stack inspection
+        wrapper_func._bouncer_owner_class = self._owner  
+        wrapper_func._bouncer_method_name = self._name
+        
+        # Store any additional context data
+        if context_data:
+            for key, value in context_data.items():
+                setattr(wrapper_func, key, value)
+        
+        return wrapper_func
+
+
+class AccessControlledDescriptor(ABC, MethodWrapperMixin):
     """Abstract base class for access-controlled descriptors"""
     
     def __init__(self, func_or_value: Any, access_level: AccessLevel):

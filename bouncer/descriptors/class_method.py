@@ -14,16 +14,13 @@ class ClassMethodDescriptor(AccessControlledDescriptor):
         
         @wraps(self._func_or_value)
         def wrapper(*args, **kwargs):
-            # Store the owner class in the wrapper for stack inspection
-            wrapper._bouncer_owner_class = self._owner  
-            wrapper._bouncer_method_name = self._name
             # For classmethods, obj could be None when called on the class
             # We use objtype as the effective class for access checking
             check_obj = obj if obj is not None else objtype
             self._check_access(check_obj)
             return self._func_or_value(objtype, *args, **kwargs)
         
-        return wrapper
+        return self._create_wrapper_with_context(wrapper)
     
     def _get_member_type(self) -> str:
         return "class method"

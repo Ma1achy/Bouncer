@@ -56,12 +56,6 @@ class StackInspector:
                 if isinstance(caller_class, type):
                     return CallerInfo(caller_class, caller_method_name)
             
-            # Look for class methods (with 'cls')
-            elif 'cls' in frame_locals and isinstance(frame_locals['cls'], type):
-                caller_class = frame_locals['cls']
-                caller_method_name = frame_info.function
-                return CallerInfo(caller_class, caller_method_name)
-            
             # Look for standalone functions (no 'self' or 'cls')
             else:
                 function_name = frame_info.function

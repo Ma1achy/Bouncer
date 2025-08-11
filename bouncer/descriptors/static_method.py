@@ -15,32 +15,49 @@ class StaticMethodDescriptor(AccessControlledDescriptor):
     def __get__(self, obj, objtype=None):
         @wraps(self._func_or_value)
         def wrapper(*args, **kwargs):
-            # Store the owner class in local variables for stack inspection
-            _bouncer_owner_class = self._owner
-            _bouncer_method_name = self._name
-            # Also store on the wrapper function itself
-            wrapper._bouncer_owner_class = self._owner
-            wrapper._bouncer_method_name = self._name
-            
-            # Only store in thread-local storage if this is a friend method
-            old_context = None
-            is_friend_method = hasattr(self._func_or_value, '_friend_classes') and self._func_or_value._friend_classes
-            if is_friend_method:
-                old_context = getattr(_thread_local, 'staticmethod_context', None)
-                _thread_local.staticmethod_context = {
-                    'caller_class': self._owner,
-                    'caller_method': self._name
-                }
+            # Handle thread-local context for friend staticmethods
+            context_manager = self._get_friend_context_manager()
             
             try:
-                self._check_access(obj)
-                return self._func_or_value(*args, **kwargs)
+                with context_manager:
+                    self._check_access(obj)
+                    return self._func_or_value(*args, **kwargs)
             finally:
-                # Restore previous context only if we set it
-                if is_friend_method:
-                    _thread_local.staticmethod_context = old_context
+                pass  # Context manager handles cleanup
         
-        return wrapper
+        return self._create_wrapper_with_context(wrapper)
     
+    def _get_friend_context_manager(self):
+        """Get a context manager for friend staticmethod context"""
+        return FriendStaticMethodContext(self._owner, self._name, self._is_friend_method())
+    
+    def _is_friend_method(self):
+        """Check if this staticmethod is a friend method"""
+        return (hasattr(self._func_or_value, '_friend_classes') and 
+                self._func_or_value._friend_classes)
+
     def _get_member_type(self) -> str:
         return "static method"
+
+
+class FriendStaticMethodContext:
+    """Context manager for friend staticmethod thread-local storage"""
+    
+    def __init__(self, owner_class, method_name, is_friend):
+        self.owner_class = owner_class
+        self.method_name = method_name
+        self.is_friend = is_friend
+        self.old_context = None
+    
+    def __enter__(self):
+        if self.is_friend:
+            self.old_context = getattr(_thread_local, 'staticmethod_context', None)
+            _thread_local.staticmethod_context = {
+                'caller_class': self.owner_class,
+                'caller_method': self.method_name
+            }
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.is_friend:
+            _thread_local.staticmethod_context = self.old_context
