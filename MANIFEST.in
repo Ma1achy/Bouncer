@@ -1,7 +1,7 @@
 include README.md
 include LICENSE
 include pytest.ini
-recursive-include bouncer *.py
+recursive-include limen *.py
 recursive-exclude tests *
 recursive-exclude decorators *
 global-exclude *.pyc

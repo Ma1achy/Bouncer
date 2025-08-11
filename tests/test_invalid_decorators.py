@@ -3,7 +3,7 @@
 Test invalid decorator combinations that should throw errors
 """
 import pytest
-from bouncer import private, protected, public
+from limen import private, protected, public
 
 def test_multiple_access_decorators_on_method():
     """Test that multiple access decorators on same method throw error"""

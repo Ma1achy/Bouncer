@@ -3,8 +3,8 @@
 Test C++ style inheritance semantics
 """
 
-from bouncer import private, protected, public
-from bouncer.utils.implicit import apply_implicit_access_control
+from limen import private, protected, public
+from limen.utils.implicit import apply_implicit_access_control
 
 print("Testing C++ Style Inheritance Semantics...\n")
 

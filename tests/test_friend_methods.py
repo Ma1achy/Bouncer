@@ -3,7 +3,7 @@ Test friend methods functionality - methods of one class that are friends of ano
 """
 import pytest
 
-from bouncer import private, protected, public, friend
+from limen import private, protected, public, friend
 
 
 @pytest.mark.friend_methods

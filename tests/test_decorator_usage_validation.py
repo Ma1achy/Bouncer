@@ -4,7 +4,7 @@ Test file to demonstrate and fix decorator usage validation issues
 import pytest
 
 # Import from the bouncer package
-from bouncer import private, protected
+from limen import private, protected
 
 
 def test_invalid_bare_class_decoration():

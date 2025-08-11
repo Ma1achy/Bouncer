@@ -6,7 +6,7 @@ import sys
 import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from bouncer import private, protected, public
+from limen import private, protected, public
 
 @pytest.mark.cpp_semantics
 @pytest.mark.access_control

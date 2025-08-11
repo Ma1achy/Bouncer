@@ -8,8 +8,8 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 try:
-    from bouncer import private, protected, public, friend
-    print("Successfully imported refactored bouncer!")
+    from limen import private, protected, public, friend
+    print("Successfully imported refactored limen!")
 except ImportError as e:
     print(f"Import error: {e}")
     sys.exit(1)

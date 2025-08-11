@@ -3,7 +3,7 @@
 Final comprehensive test of implicit access control with inheritance
 """
 
-from bouncer import private, protected, public, friend
+from limen import private, protected, public, friend
 
 print("🛡️ COMPREHENSIVE IMPLICIT ACCESS CONTROL TEST\n")
 

@@ -1,6 +1,8 @@
-# Bouncer
+# Limen
 
-Bouncer is an access control system that provides fine-grained security and encapsulation for Python classes. It implements true C++ semantics including public, protected, and private access levels, friend relationships, and inheritance-based access control with automatic detection of access levels based on method naming conventions.
+Limen is an access control system that provides fine-grained security and encapsulation for Python classes. It implements true C++ semantics including public, protected, and private access levels, friend relationships, and inheritance-based access control with automatic detection of access levels based on method naming conventions.
+
+*Limen (Latin: "threshold") - The boundary between spaces, representing the controlled passage between public and private domains.*
 
 ### Key Features
 
@@ -20,19 +22,19 @@ Bouncer is an access control system that provides fine-grained security and enca
 
 ### From PyPI (Recommended)
 ```bash
-pip install bouncer-access-control
+pip install limen
 ```
 
 ### From Source
 ```bash
-git clone https://github.com/Ma1achy/Bouncer.git
-cd Bouncer
+git clone https://github.com/Ma1achy/Limen.git
+cd Limen
 pip install -e .
 ```
 
 ## Access Control & Inheritance
 
-Bouncer provides comprehensive access control through explicit decorators and C++ style inheritance semantics with public, protected, and private inheritance types.
+Limen provides comprehensive access control through explicit decorators and C++ style inheritance semantics with public, protected, and private inheritance types.
 
 ### Basic Access Control Decorators
 
@@ -41,7 +43,7 @@ Bouncer provides comprehensive access control through explicit decorators and C+
 Private methods are only accessible within the same class where they're defined.
 
 ```python
-from bouncer import private, protected, public, friend
+from limen import private, protected, public, friend
 
 class Base:
     @private
@@ -285,7 +287,7 @@ result = helper.access_target(derived_obj)  # Works - friend relationship preser
 
 ## Implicit Access Control
 
-Bouncer provides automatic access level detection based on Python naming conventions. When inheritance decorators are applied, methods are automatically wrapped with appropriate access control based on their names.
+Limen provides automatic access level detection based on Python naming conventions. When inheritance decorators are applied, methods are automatically wrapped with appropriate access control based on their names.
 
 ### Naming Convention Rules
 
@@ -339,7 +341,7 @@ obj._explicitly_public()   # PermissionError - explicit public became protected
 You can also manually apply implicit access control without inheritance:
 
 ```python
-from bouncer.utils.implicit import apply_implicit_access_control
+from limen.utils.implicit import apply_implicit_access_control
 
 class Base:
     def public_method(self):
@@ -624,7 +626,7 @@ helper.internal_class_operation(target)
 
 ### Name Mangling Bypass Prevention
 
-**Critical Security Feature**: Bouncer prevents bypassing access control through Python's name mangling mechanism using multiple protection layers.
+**Critical Security Feature**: Limen prevents bypassing access control through Python's name mangling mechanism using multiple protection layers.
 
 Python automatically converts private methods like `__private_method` to `_ClassName__private_method`. Without protection, external code could bypass access control by directly accessing the mangled name:
 
@@ -639,7 +641,7 @@ class SecureClass:
         return self.__private_method()  # Legitimate internal access
 
 # Apply implicit access control (detects __ methods as private)
-from bouncer.utils.implicit import apply_implicit_access_control
+from limen.utils.implicit import apply_implicit_access_control
 apply_implicit_access_control(SecureClass)
 
 obj = SecureClass()
@@ -659,7 +661,7 @@ result = obj.public_access()  # "secret data"
 Explicit `@private` decorators also prevent name mangling bypasses through descriptor-level access control:
 
 ```python
-from bouncer import private
+from limen import private
 
 class SecureClass:
     @private
@@ -727,7 +729,7 @@ unauthorized = UnauthorizedClass()
 # unauthorized.hack(store)  # PermissionError: Access denied
 ```
 
-This security feature ensures that Bouncer's access control cannot be circumvented through Python's name mangling, providing true encapsulation and security for your private methods.
+This security feature ensures that Limen's access control cannot be circumvented through Python's name mangling, providing true encapsulation and security for your private methods.
 
 ## Property Access Control
 
@@ -819,7 +821,7 @@ result = friend.access_property(target)  # Works
 ### Runtime Control
 
 ```python
-from bouncer import (
+from limen import (
     enable_enforcement, 
     disable_enforcement, 
     is_enforcement_enabled,
@@ -869,18 +871,18 @@ print(f"Total friend relationships: {friendship_manager.get_friends_count()}")
 print(f"Classes with friends: {friendship_manager.get_relationships_count()}")
 
 # Reset system state (useful for testing)
-from bouncer import reset_system
+from limen import reset_system
 reset_system()
 ```
 
 ## Error Handling
 
-Bouncer provides specific exception types for different scenarios.
+Limen provides specific exception types for different scenarios.
 
 ### Exception Types
 
 ```python
-from bouncer.exceptions import (
+from limen.exceptions import (
     AccessControlError,          # Base exception
     PermissionDeniedError,       # Custom access denial (if using custom exceptions)
     DecoratorConflictError,      # Conflicting decorators
@@ -931,7 +933,7 @@ except ValueError as e:
 
 ```python
 import unittest
-from bouncer import disable_enforcement, enable_enforcement
+from limen import disable_enforcement, enable_enforcement
 
 class TestSecureClass(unittest.TestCase):
     def setUp(self):
@@ -954,7 +956,7 @@ class TestSecureClass(unittest.TestCase):
         self.assertEqual(result, "secret")
 
 # Or use context manager approach
-from bouncer.system import get_access_control_system
+from limen.system import get_access_control_system
 
 def test_with_disabled_enforcement():
     access_control = get_access_control_system()
@@ -971,7 +973,7 @@ def test_with_disabled_enforcement():
 ### Debugging Friend Relationships
 
 ```python
-from bouncer.system import get_access_control_system
+from limen.system import get_access_control_system
 
 class TargetClass:
     @private
@@ -1017,7 +1019,7 @@ pip install -e .[dev]
 pytest
 
 # Run with coverage
-pytest --cov=bouncer
+pytest --cov=limen
 
 # Run specific test categories
 pytest -m access_control      # Access control tests
@@ -1030,13 +1032,13 @@ pytest -m edge_cases          # Edge cases and boundary tests
 
 ```bash
 # Format code
-black bouncer/ tests/
+black limen/ tests/
 
 # Type checking
-mypy bouncer/
+mypy limen/
 
 # Lint code
-flake8 bouncer/ tests/
+flake8 limen/ tests/
 ```
 
 ## Contributing

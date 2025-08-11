@@ -3,7 +3,7 @@
 Test various inheritance patterns and friend function functionality
 """
 
-from bouncer import private, protected, public, friend
+from limen import private, protected, public, friend
 
 print("Testing inheritance patterns...\n")
 

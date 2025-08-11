@@ -7,7 +7,7 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from bouncer import protected, private, public
+from limen import protected, private, public
 
 def test_implicit_inheritance():
     """Test implicit access control when using inheritance decorators"""

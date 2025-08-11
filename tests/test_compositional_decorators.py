@@ -3,7 +3,7 @@ Test compositional decorator functionality (@private @staticmethod etc.)
 """
 import pytest
 
-from bouncer import private, protected, public, friend
+from limen import private, protected, public, friend
 
 @pytest.mark.composition
 @pytest.mark.cpp_semantics

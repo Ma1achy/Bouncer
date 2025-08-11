@@ -3,7 +3,7 @@
 Test implicit access control with inheritance decorators
 """
 
-from bouncer import private, protected, public
+from limen import private, protected, public
 
 print("Testing Implicit Access Control with Inheritance...\n")
 

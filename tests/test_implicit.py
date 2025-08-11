@@ -3,8 +3,8 @@
 Test implicit access control functionality
 """
 
-from bouncer.utils.implicit import apply_implicit_access_control
-from bouncer.utils.naming import detect_implicit_access_level
+from limen.utils.implicit import apply_implicit_access_control
+from limen.utils.naming import detect_implicit_access_level
 
 # Test naming detection
 print('Testing naming detection:')

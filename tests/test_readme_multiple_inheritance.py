@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Test the complex multiple inheritance examples from the README."""
 
-from bouncer import protected, private
+from limen import protected, private
 
 def test_qux_multiple_inheritance():
     """Test the @protected(Foo, Bar) class Qux example."""

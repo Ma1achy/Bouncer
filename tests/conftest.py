@@ -3,7 +3,7 @@ Pytest configuration and fixtures for C++ semantics testing
 """
 import pytest
 
-from bouncer import reset_system
+from limen import reset_system
 
 @pytest.fixture(autouse=True)
 def reset_bouncer_system():
@@ -15,7 +15,7 @@ def reset_bouncer_system():
 @pytest.fixture
 def sample_classes():
     """Provide sample classes for testing"""
-    from bouncer import private, protected, public
+    from limen import private, protected, public
     
     class Base:
         @private

@@ -9,7 +9,7 @@ A comprehensive access control system for Python classes that provides:
 - Decorator conflict detection
 
 Example usage:
-    from bouncer import private, protected, public, friend
+    from limen import private, protected, public, friend
 
     class MyClass:
         @private

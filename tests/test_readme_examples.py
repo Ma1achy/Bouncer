@@ -3,8 +3,8 @@
 Test the README examples to ensure documentation accuracy
 """
 
-from bouncer import private, protected, public, friend
-from bouncer.utils.implicit import apply_implicit_access_control
+from limen import private, protected, public, friend
+from limen.utils.implicit import apply_implicit_access_control
 
 print("Testing README Documentation Examples...\n")
 

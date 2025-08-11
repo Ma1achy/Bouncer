@@ -3,7 +3,7 @@
 Test if base class gets implicit access control when inheritance decorator is used
 """
 
-from bouncer import private, protected, public
+from limen import private, protected, public
 
 print("Testing Base Class Implicit Access Control After Inheritance Decorator...\n")
 

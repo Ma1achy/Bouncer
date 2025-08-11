@@ -13,7 +13,7 @@ import os
 # Add the bouncer_refactored module to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from bouncer import private, protected, public
+from limen import private, protected, public
 
 
 class TestPropertySetterAccessControl:

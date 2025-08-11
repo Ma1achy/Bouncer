@@ -8,8 +8,8 @@ legitimate internal access and friend relationships.
 """
 
 import pytest
-from bouncer.decorators import private, friend
-from bouncer.utils.implicit import apply_implicit_access_control
+from limen.decorators import private, friend
+from limen.utils.implicit import apply_implicit_access_control
 
 
 class TestNameManglingBypassPrevention:
@@ -117,7 +117,7 @@ class TestNameManglingBypassPrevention:
         obj = TestClass()
 
         # Disable enforcement
-        from bouncer.system.access_control import get_access_control_system
+        from limen.system.access_control import get_access_control_system
         access_control = get_access_control_system()
         original_enforcement = access_control.enforcement_enabled
         access_control.enforcement_enabled = False

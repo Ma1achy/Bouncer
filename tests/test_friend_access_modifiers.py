@@ -2,8 +2,8 @@
 Test access modifiers applied to friend methods, staticmethods, and classmethods
 """
 import pytest
-from bouncer.decorators.friend_decorator import friend
-from bouncer.decorators.access_decorators import private, protected, public
+from limen.decorators.friend_decorator import friend
+from limen.decorators.access_decorators import private, protected, public
 
 
 @pytest.mark.access_control

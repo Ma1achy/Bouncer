@@ -3,8 +3,8 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "bouncer-access-control"
-version = "2.0.0"
+name = "limen"
+version = "1.0.0"
 authors = [
     {name = "Ma1achy", email = "malachydoherty16@gmail.com"},
 ]
@@ -13,9 +13,8 @@ readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.8"
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
@@ -27,7 +26,7 @@ classifiers = [
     "Topic :: Security",
     "Topic :: Software Development :: Object Brokering",
 ]
-keywords = ["access-control", "private", "protected", "public", "friend", "decorators", "oop", "security", "inheritance"]
+keywords = ["access-control", "private", "protected", "public", "friend", "decorators", "oop", "security", "inheritance", "limen", "threshold"]
 
 [project.optional-dependencies]
 dev = [
@@ -39,14 +38,14 @@ dev = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/Ma1achy/Bouncer"
-"Bug Reports" = "https://github.com/Ma1achy/Bouncer/issues"
-"Source" = "https://github.com/Ma1achy/Bouncer"
-"Documentation" = "https://github.com/Ma1achy/Bouncer#readme"
+"Homepage" = "https://github.com/Ma1achy/Limen"
+"Bug Reports" = "https://github.com/Ma1achy/Limen/issues"
+"Source" = "https://github.com/Ma1achy/Limen"
+"Documentation" = "https://github.com/Ma1achy/Limen#readme"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["bouncer*"]
+include = ["limen*"]
 exclude = ["tests*"]
 
 [tool.pytest.ini_options]
