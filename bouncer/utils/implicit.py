@@ -1,31 +1,9 @@
 """
 Implicit access control based on naming conventions
 """
-from typing import Type, Any
-from ..core import AccessLevel
+from typing import Type
 from ..descriptors import DescriptorFactory
-
-
-def detect_implicit_access_level(method_name: str) -> AccessLevel:
-    """
-    Detect access level from Python naming conventions:
-    - __method = private (double underscore, but not dunder methods)
-    - _method = protected (single underscore)
-    - method = public (no underscore)
-    """
-    # Skip dunder methods (like __init__, __str__, etc.)
-    if method_name.startswith('__') and method_name.endswith('__'):
-        return AccessLevel.PUBLIC  # Dunder methods should remain public
-    
-    if method_name.startswith('__'):
-        # Double underscore prefix (but not dunder methods)
-        return AccessLevel.PRIVATE
-    elif method_name.startswith('_'):
-        # Single underscore prefix
-        return AccessLevel.PROTECTED
-    else:
-        # No underscore prefix
-        return AccessLevel.PUBLIC
+from .naming import detect_implicit_access_level
 
 
 def apply_implicit_access_control(cls: Type) -> None:

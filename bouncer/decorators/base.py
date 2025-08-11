@@ -105,61 +105,20 @@ class AccessControlDecorator:
     
     def _validate_function_usage(self, func):
         """Validate decorator is used on class methods"""
-        if hasattr(func, '__qualname__'):
-            qualname_parts = func.__qualname__.split('.')
-
-            # Check if this looks like a class method by examining the pattern
-            # Valid patterns:
-            # - ClassName.method_name (normal case)
-            # - outer_func.<locals>.ClassName.method_name (class inside function)
-            # - OuterClass.NestedClass.method_name (nested class)
-            # Invalid patterns:
-            # - function_name (module-level function)
-            # - outer_func.<locals>.function_name (nested function)
-
-            if len(qualname_parts) < 2:
-                # Single part = module-level function
-                raise ValueError(
-                    f"@{self._access_level.value} decorator cannot be applied to module-level function. "
-                    f"Access control decorators can only be used on class methods."
-                )
-            elif '<locals>' in qualname_parts:
-                # If it contains <locals>, check if it ends with ClassName.method_name
-                # Find the last occurrence of <locals>
-                locals_index = len(qualname_parts) - 1 - qualname_parts[::-1].index('<locals>')
-                remaining_parts = qualname_parts[locals_index + 1:]
-
-                # Should have at least 2 parts after <locals>: ClassName.method_name
-                # Could be more for nested classes: OuterClass.InnerClass.method_name
-                if len(remaining_parts) < 2:
-                    raise ValueError(
-                        f"@{self._access_level.value} decorator cannot be applied to module-level function. "
-                        f"Access control decorators can only be used on class methods."
-                    )
-            # For normal cases without <locals>, we need at least 2 parts for ClassName.method_name
-            # Could be more for nested classes
+        from ..utils.validation import validate_method_usage
+        validate_method_usage(func, self._access_level.value)
 
     def _check_access_level_conflict(self, func):
         """Check for conflicting access level decorators"""
-        existing_level = None
-        has_friend_flag = False
+        from ..utils.descriptors import (
+            get_access_level_from_descriptor, 
+            get_friend_flag_from_descriptor,
+            get_wrapper_info_from_descriptor
+        )
+        from ..utils.error_messages import format_decorator_conflict_message
         
-        # Check direct access level and friend flag
-        if hasattr(func, '_access_level'):
-            existing_level = getattr(func, '_access_level')
-            has_friend_flag = getattr(func, '_created_by_friend_decorator', False)
-        # Check if this is a property containing an access-controlled descriptor
-        elif isinstance(func, property) and hasattr(func.fget, '_access_level'):
-            existing_level = getattr(func.fget, '_access_level')
-            has_friend_flag = getattr(func.fget, '_created_by_friend_decorator', False)
-        # Check if this is a staticmethod containing an access-controlled descriptor
-        elif isinstance(func, staticmethod) and hasattr(func.__func__, '_access_level'):
-            existing_level = getattr(func.__func__, '_access_level')
-            has_friend_flag = getattr(func.__func__, '_created_by_friend_decorator', False)
-        # Check if this is a classmethod containing an access-controlled descriptor
-        elif isinstance(func, classmethod) and hasattr(func.__func__, '_access_level'):
-            existing_level = getattr(func.__func__, '_access_level')
-            has_friend_flag = getattr(func.__func__, '_created_by_friend_decorator', False)
+        existing_level = get_access_level_from_descriptor(func)
+        has_friend_flag = get_friend_flag_from_descriptor(func)
 
         if existing_level is not None:
             # Special case: Allow overriding or confirming access level if it was set by friend decorator
@@ -168,25 +127,13 @@ class AccessControlDecorator:
                 return
             
             # Provide more specific error messages based on the wrapper type
-            if isinstance(func, property):
-                wrapper_info = " (found in property.fget)"
-            elif isinstance(func, staticmethod):
-                wrapper_info = " (found in staticmethod.__func__)"
-            elif isinstance(func, classmethod):
-                wrapper_info = " (found in classmethod.__func__)"
-            else:
-                wrapper_info = ""
+            wrapper_info = get_wrapper_info_from_descriptor(func)
             
-            if existing_level == self._access_level:
-                raise ValueError(
-                    f"Duplicate access level decorators: method already has @{existing_level.value} "
-                    f"decorator{wrapper_info}, cannot apply another @{self._access_level.value} decorator"
-                )
-            else:
-                raise ValueError(
-                    f"Conflicting access level decorators: method already has @{existing_level.value} "
-                    f"decorator{wrapper_info}, cannot apply @{self._access_level.value} decorator"
-                )
+            error_message = format_decorator_conflict_message(
+                existing_level.value, self._access_level.value, 
+                getattr(func, '__name__', 'unknown'), wrapper_info
+            )
+            raise ValueError(error_message)
 
     def _is_bare_class_decoration(self):
         """Check if this is bare class decoration (invalid)"""

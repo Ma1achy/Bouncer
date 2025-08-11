@@ -134,27 +134,21 @@ class AccessChecker:
     
     def _extract_function_from_descriptor(self, descriptor):
         """Extract the underlying function from various descriptor types"""
-        if isinstance(descriptor, (classmethod, staticmethod)):
-            return descriptor.__func__
-        elif hasattr(descriptor, '__func__'):
-            return descriptor.__func__
-        elif hasattr(descriptor, '_func_or_value'):
-            return descriptor._func_or_value
-        return None
+        from ..utils.descriptors import extract_function_from_descriptor
+        return extract_function_from_descriptor(descriptor)
 
     def _check_access_by_level(self, access_level: AccessLevel, 
                               target_class: Type, caller_class: Type, caller_info: CallerInfo = None) -> bool:
-        """Check access based on access level"""
-        if access_level == AccessLevel.PUBLIC:
-            return True
+        """Check access based on access level using unified strategy pattern"""
+        # Unified access level checking strategy
+        access_strategies = {
+            AccessLevel.PUBLIC: lambda: True,
+            AccessLevel.PRIVATE: lambda: self._check_private_access(target_class, caller_class, caller_info),
+            AccessLevel.PROTECTED: lambda: self._check_protected_access(target_class, caller_class, caller_info)
+        }
         
-        if access_level == AccessLevel.PRIVATE:
-            return self._check_private_access(target_class, caller_class, caller_info)
-        
-        if access_level == AccessLevel.PROTECTED:
-            return self._check_protected_access(target_class, caller_class, caller_info)
-        
-        return False
+        strategy = access_strategies.get(access_level)
+        return strategy() if strategy else False
     
     def _check_private_access(self, target_class: Type, caller_class: Type, caller_info: CallerInfo = None) -> bool:
         """Check private access (same class only - friends already checked in can_access)"""
