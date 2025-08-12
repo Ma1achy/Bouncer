@@ -15,7 +15,9 @@ class StackInspector:
         'static_wrapper', 'class_wrapper', 'method_wrapper',
         'controlled_getattribute', 'controlled_setattr', 'getter',
         '_check_access', '__get__', '__set__', '__delete__',  # Add descriptor methods
-        'can_access'  # Add access checker method
+        'can_access',  # Add access checker method
+        'protected_getattribute',  # Add implicit access control method
+        '_check_access_classmethod'  # Add class method access control method
     ]
     
     def _get_staticmethod_context(self):

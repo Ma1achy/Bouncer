@@ -34,7 +34,34 @@ class AccessChecker:
         # Use instance class if provided for inheritance analysis
         actual_target_class = instance_class if instance_class else target_class
         
-        # Same class access is always allowed
+        # For private methods, enforce strict C++ semantics
+        if access_level == AccessLevel.PRIVATE:
+            # Special case: during constructor chains, allow access based on the 
+            # immediate constructor context rather than the ultimate caller
+            if (caller_info and caller_info.caller_method == '__init__' and
+                instance_class and caller_class and target_class):
+                # In constructor context, check if target_class is in the inheritance hierarchy
+                # This handles super().__init__() calling private methods correctly
+                if (issubclass(instance_class, target_class) or issubclass(target_class, instance_class)):
+                    return True
+            
+            # In C++ semantics, private methods are only accessible when:
+            # 1. Called from the exact same class (caller_class == target_class)
+            # 2. AND the instance is of the same class or during constructor chains
+            if caller_class == target_class:
+                # Same class calling its own private method
+                if not instance_class or instance_class == target_class:
+                    # Direct instance access or no instance context
+                    return True
+                else:
+                    # Private method of base class called on derived class instance
+                    # This should be denied in strict C++ semantics
+                    return False
+            else:
+                # Different class trying to access private method - always deny
+                return False
+        
+        # Same class access for non-private methods is always allowed
         if caller_class == target_class:
             return True
         
@@ -151,9 +178,31 @@ class AccessChecker:
         return strategy() if strategy else False
     
     def _check_private_access(self, target_class: Type, caller_class: Type, caller_info: CallerInfo = None) -> bool:
-        """Check private access (same class only - friends already checked in can_access)"""
-        # Private methods are only accessible from same class (if caller_class exists)
-        return caller_class == target_class if caller_class else False
+        """Check private access (same class or same instance context - friends already checked in can_access)"""
+        if not caller_class:
+            return False
+        
+        # Same class access is always allowed
+        if caller_class == target_class:
+            return True
+        
+        # For inheritance scenarios: check if we're in a constructor chain or same instance context
+        if caller_info and caller_info.caller_method:
+            # Allow private access during constructor chains (__init__ methods)
+            # This handles cases like super().__init__() calling private methods
+            if caller_info.caller_method == '__init__':
+                # In constructor context, allow access to private methods of any class
+                # in the inheritance hierarchy of the same instance
+                if issubclass(caller_class, target_class) or issubclass(target_class, caller_class):
+                    return True
+            
+            # Also allow private access when the caller is any method within the same
+            # inheritance hierarchy - this handles cases where a method in a derived class
+            # calls a private method defined in the same class during complex inheritance scenarios
+            if issubclass(caller_class, target_class):
+                return True
+        
+        return False
     
     def _check_protected_access(self, target_class: Type, caller_class: Type, caller_info: CallerInfo = None) -> bool:
         """Check protected access (inheritance hierarchy - friends already checked in can_access)"""        
