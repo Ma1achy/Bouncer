@@ -25,7 +25,21 @@ class MethodDescriptor(AccessControlledDescriptor):
         
         @wraps(self._func_or_value)
         def wrapper(*args, **kwargs):
-            self._check_access(obj)
+            try:
+                self._check_access(obj)
+            except Exception as e:
+                # Create a new exception and directly raise it with simplified traceback
+                from ..exceptions import PermissionDeniedError
+                if isinstance(e, PermissionDeniedError):
+                    raise PermissionDeniedError(
+                        e.access_level, 
+                        e.member_type, 
+                        e.member_name,
+                        target_class=e.target_class,
+                        caller_info=e.caller_info
+                    ) from None
+                else:
+                    raise e from None
             
             # Skip event emission in production for performance
             # (This can be re-enabled via config if needed)

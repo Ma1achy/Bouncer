@@ -52,11 +52,16 @@ class MessageGenerator:
             [decorator], method_name, arguments, return_annotation, function_body, wrapper_decorators
         )
         
-        formatted_target = TargetFormatter.format_target_name(method_name, method_type)
+        # Use class context if available for better error messages
+        class_name = context.get('class_name')
+        if class_name:
+            formatted_target = TargetFormatter.format_qualified_target(class_name, method_name, method_type)
+        else:
+            formatted_target = TargetFormatter.format_target_name(method_name, method_type)
         
         return (
             f"@{decorator} was applied to {formatted_target} more than once!\n"
-            f"Did you mean:\n"
+            f"Did you mean...\n"
             f"{suggestion}\n"
             f"?"
         )
@@ -80,12 +85,17 @@ class MessageGenerator:
             [new_level], method_name, arguments, return_annotation, function_body, wrapper_decorators
         )
         
-        formatted_target = TargetFormatter.format_target_name(method_name, method_type)
+        # Use class context if available for better error messages
+        class_name = context.get('class_name')
+        if class_name:
+            formatted_target = TargetFormatter.format_qualified_target(class_name, method_name, method_type)
+        else:
+            formatted_target = TargetFormatter.format_target_name(method_name, method_type)
         
         return (
             f"Conflicting access level decorators on {formatted_target}: "
             f"already has @{existing_level}, cannot apply @{new_level}.\n"
-            f"Did you mean:\n"
+            f"Did you mean...\n"
             f"{suggestion}\n"
             f"?"
         )
@@ -100,13 +110,13 @@ class MessageGenerator:
         if usage_type == "bare class":
             return MessageGenerator._generate_bare_class_message(decorator_name, context)
         elif usage_type == "module-level function":
-            return MessageGenerator._generate_module_function_message(decorator_name)
+            return MessageGenerator._generate_module_function_message(decorator_name, context)
         elif usage_type in ["method", "function"]:
-            return MessageGenerator._generate_inheritance_syntax_error(decorator_name, usage_type)
+            return MessageGenerator._generate_inheritance_syntax_error(decorator_name, usage_type, context)
         elif usage_type == "non-class target":
-            return MessageGenerator._generate_non_class_target_message(decorator_name)
+            return MessageGenerator._generate_non_class_target_message(decorator_name, context)
         elif usage_type == "invalid inheritance arguments":
-            return MessageGenerator._generate_invalid_inheritance_message(decorator_name)
+            return MessageGenerator._generate_invalid_inheritance_message(decorator_name, context)
         elif usage_type == "duplicate application":
             return MessageGenerator._generate_duplicate_application_message(decorator_name, context)
         else:
@@ -121,43 +131,104 @@ class MessageGenerator:
         else:
             suggestion = f"@{decorator_name}(<BaseClass>)"
         
+        # Add scope information if available
+        class_name = context.get('class_name')
+        module_name = context.get('module_name')
+        
+        if class_name:
+            scope_info = f" on class '{class_name}'"
+        elif module_name:
+            scope_info = f" in module '{module_name}'"
+        else:
+            scope_info = ""
+        
         return (
-            f"@{decorator_name} cannot be applied to a class without specifying a class to inherit from.\n"
-            f"Did you mean: {suggestion} ?"
+            f"@{decorator_name} cannot be applied to a class without specifying a class to inherit from{scope_info}.\n"
+            f"Did you mean... {suggestion} ?"
         )
     
     @staticmethod
-    def _generate_module_function_message(decorator_name: str) -> str:
+    def _generate_module_function_message(decorator_name: str, context: Dict[str, Any] = None) -> str:
         """Generate message for module-level function error"""
+        context = context or {}
+        
+        # Clean up the function name for better readability
+        function_name = context.get('function_name', 'function')
+        module_name = context.get('module_name')
+        
+        # Clean up ugly qualnames like 'test_func.<locals>.inner_func'
+        if '<locals>' in function_name:
+            # Extract just the final function name
+            parts = function_name.split('.')
+            clean_name = parts[-1]  # Get the last part (actual function name)
+        else:
+            clean_name = function_name.split('.')[-1] if '.' in function_name else function_name
+        
+        # Format the scope information
+        if module_name and module_name != '__main__':
+            scope_info = f" in module '{module_name}'"
+        else:
+            scope_info = ""
+        
         return (
-            f"@{decorator_name} cannot be applied to module-level functions. "
+            f"@{decorator_name} cannot be applied to module-level function {clean_name}() {scope_info}. "
             f"Access control decorators can only be used on class methods.\n"
             f"Did you mean to put this function inside a class?"
         )
     
     @staticmethod
-    def _generate_inheritance_syntax_error(decorator_name: str, usage_type: str) -> str:
+    def _generate_inheritance_syntax_error(decorator_name: str, usage_type: str, context: Dict[str, Any] = None) -> str:
         """Generate message for inheritance syntax on methods"""
+        context = context or {}
+        
+        # Clean up the function name for better readability
+        function_name = context.get('function_name', usage_type)
+        module_name = context.get('module_name')
+        
+        # Clean up ugly qualnames like 'test_func.<locals>.inner_func'
+        if '<locals>' in function_name:
+            # Extract just the final function name
+            clean_name = function_name.split('.')[-1]
+        else:
+            clean_name = function_name.split('.')[-1] if '.' in function_name else function_name
+        
+        if module_name and module_name != '__main__':
+            scope_info = f" in module '{module_name}'"
+        else:
+            scope_info = ""
+        
         return (
-            f"@{decorator_name} cannot be applied to {usage_type} with inheritance syntax. "
+            f"@{decorator_name} cannot be applied to {usage_type} '{clean_name}'{scope_info} with inheritance syntax. "
             f"Inheritance decorators can only be applied to classes.\n"
-            f"Did you mean: @{decorator_name} (without parentheses) for {usage_type} access control?"
+            f"Did you mean... @{decorator_name} (without parentheses) for {usage_type} access control?"
         )
     
     @staticmethod
-    def _generate_non_class_target_message(decorator_name: str) -> str:
+    def _generate_non_class_target_message(decorator_name: str, context: Dict[str, Any] = None) -> str:
         """Generate message for non-class target error"""
+        context = context or {}
+        
+        # Add scope information if available
+        module_name = context.get('module_name')
+        scope_info = f" in module '{module_name}'" if module_name else ""
+        
         return (
-            f"@{decorator_name} with inheritance syntax can only be applied to classes.\n"
-            f"Did you mean: @{decorator_name} (without parentheses) for method access control?"
+            f"@{decorator_name} with inheritance syntax can only be applied to classes{scope_info}.\n"
+            f"Did you mean... @{decorator_name} (without parentheses) for method access control?"
         )
     
     @staticmethod
-    def _generate_invalid_inheritance_message(decorator_name: str) -> str:
+    def _generate_invalid_inheritance_message(decorator_name: str, context: Dict[str, Any] = None) -> str:
         """Generate message for invalid inheritance arguments"""
+        context = context or {}
+        
+        # Add scope information if available
+        module_name = context.get('module_name')
+        scope_info = f" in module '{module_name}'" if module_name else ""
+        
         return (
-            f"@{decorator_name} inheritance decorator requires class arguments only.\n"
-            f"Did you mean: @{decorator_name}(<ClassName>) where <ClassName> is a class?"
+            f"@{decorator_name} inheritance decorator requires class arguments only{scope_info}.\n"
+            f"Did you mean... @{decorator_name}(<ClassName>) where <ClassName> is a class?"
         )
     
     @staticmethod
@@ -185,7 +256,7 @@ class MessageGenerator:
         
         return (
             f"@{decorator_name} was applied to {formatted_target} more than once!\n"
-            f"Did you mean:\n"
+            f"Did you mean...\n"
             f"{suggestion}\n"
             f"?"
         )

@@ -107,10 +107,23 @@ class AccessControlledDescriptor(ABC, MethodWrapperMixin):
         
         if not result:
             from ..exceptions import PermissionDeniedError
+            
+            # Prepare caller information for enhanced error message
+            caller_info_dict = {
+                'caller_class': caller_info.caller_class.__name__ if caller_info.caller_class else None,
+                'caller_function': caller_info.caller_method,
+                'caller_module': getattr(caller_info.caller_class, '__module__', None) if caller_info.caller_class else None,
+            }
+            
+            # Get target class name
+            target_class = self._owner.__name__ if self._owner else None
+            
             raise PermissionDeniedError(
                 self._access_level.value, 
                 self._get_member_type(), 
-                self._name
+                self._name,
+                target_class=target_class,
+                caller_info=caller_info_dict
             )
     
     @abstractmethod

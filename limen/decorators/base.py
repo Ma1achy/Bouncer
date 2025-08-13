@@ -44,9 +44,11 @@ class AccessControlDecorator:
         if all(isinstance(arg, type) for arg in args):
             return self._create_inheritance_decorator(args)
         else:
+            scope_context = self._get_scope_context()
             raise DecoratorUsageError(
                 self._access_level.value, 
-                "invalid inheritance arguments"
+                "invalid inheritance arguments",
+                scope_context
             )
     
     def _apply_to_function(self, func):
@@ -104,11 +106,15 @@ class AccessControlDecorator:
         
         # Try to find available classes in the same scope for suggestions
         available_classes = self._find_available_classes()
+        scope_context = self._get_scope_context()
+        
+        # Add the actual class name being decorated
+        scope_context['class_name'] = cls.__name__
         
         raise DecoratorUsageError(
             self._access_level.value,
             "bare class",
-            {"available_classes": available_classes}
+            {"available_classes": available_classes, **scope_context}
         )
     
     def _handle_class_decoration(self, cls):
@@ -128,14 +134,18 @@ class AccessControlDecorator:
                         target_type = "method"
                     else:
                         target_type = "function"
+                    scope_context = self._get_scope_context()
                     raise DecoratorUsageError(
                         self._access_level.value, 
-                        target_type
+                        target_type,
+                        scope_context
                     )
                 else:
+                    scope_context = self._get_scope_context()
                     raise DecoratorUsageError(
                         self._access_level.value,
-                        "non-class target"
+                        "non-class target",
+                        scope_context
                     )
             
             # Apply implicit access control to base classes first
@@ -187,6 +197,106 @@ class AccessControlDecorator:
         
         return wrapper_decorators
 
+    def _get_scope_context(self) -> dict:
+        """Get scope context information from the call stack"""
+        import inspect
+        import re
+        
+        context = {}
+        
+        try:
+            stack = inspect.stack()
+            
+            # Look through the stack to find relevant context
+            for i, frame_info in enumerate(stack[1:], 1):
+                frame = frame_info.frame
+                
+                # For class decoration, look for the special __build_class__ frame
+                if frame_info.function == '__build_class__':
+                    # This is the frame where a class is being built
+                    if 'name' in frame.f_locals:
+                        context['class_name'] = frame.f_locals['name']
+                        break
+                
+                # Look for class definition pattern in code context
+                if hasattr(frame_info, 'code_context') and frame_info.code_context:
+                    for line in frame_info.code_context:
+                        line = line.strip()
+                        # Match class definition patterns
+                        class_match = re.match(r'class\s+(\w+)', line)
+                        if class_match:
+                            context['class_name'] = class_match.group(1)
+                            break
+                    
+                    if 'class_name' in context:
+                        break
+                
+                # Check if we're in a class namespace being built
+                if '__name__' in frame.f_locals and frame.f_locals.get('__name__'):
+                    # This might be a class namespace
+                    class_name = frame.f_locals.get('__qualname__')
+                    if class_name and '.' not in class_name:  # Avoid nested classes for now
+                        context['class_name'] = class_name
+                        break
+                
+                # Try to get module name
+                if '__name__' in frame.f_globals:
+                    module_name = frame.f_globals['__name__']
+                    if module_name != '__main__':
+                        context.setdefault('module_name', module_name)
+                        
+        except Exception:
+            # If anything goes wrong with stack inspection, just return empty context
+            pass
+            
+        return context
+
+    def _get_class_context_from_stack(self):
+        """Extract class name from the call stack during decorator application"""
+        import inspect
+        import re
+        
+        try:
+            # Get the call stack
+            stack = inspect.stack()
+            
+            # Look through the stack frames to find class definition context
+            for frame_info in stack[1:15]:  # Check more frames
+                frame = frame_info.frame
+                
+                # Method 1: Look for __build_class__ frame
+                if frame_info.function == '__build_class__':
+                    if 'name' in frame.f_locals:
+                        return frame.f_locals['name']
+                
+                # Method 2: Look for class definition in code context
+                if hasattr(frame_info, 'code_context') and frame_info.code_context:
+                    for line in frame_info.code_context:
+                        line = line.strip()
+                        class_match = re.match(r'class\s+(\w+)', line)
+                        if class_match:
+                            return class_match.group(1)
+                
+                # Method 3: Look for class definition context via __qualname__
+                local_vars = frame.f_locals
+                if '__qualname__' in local_vars:
+                    qualname = local_vars['__qualname__']
+                    if isinstance(qualname, str) and '.' not in qualname and qualname.isidentifier():
+                        # This looks like a class being defined
+                        return qualname
+                
+                # Method 4: Look for class name being assigned
+                if '__name__' in local_vars and '__module__' in local_vars:
+                    class_name = local_vars.get('__name__')
+                    if (class_name and isinstance(class_name, str) and 
+                        class_name.isidentifier() and not class_name.startswith('_')):
+                        return class_name
+                        
+            return None
+        except Exception:
+            # If stack inspection fails, just return None
+            return None
+
     def _check_access_level_conflict(self, func):
         """Check for conflicting access level decorators"""
         from ..utils.descriptors import (
@@ -209,11 +319,18 @@ class AccessControlDecorator:
             # Get a better method name
             method_name = self._get_method_name(func)
             
+            # Try to get class context for better error messages
+            class_context = self._get_class_context_from_stack()
+            
             raise DecoratorConflictError(
                 existing_level.value, 
                 self._access_level.value, 
                 method_name,
-                {"wrapper_decorators": wrapper_decorators, "func_obj": func}
+                {
+                    "wrapper_decorators": wrapper_decorators, 
+                    "func_obj": func,
+                    "class_name": class_context
+                }
             )
 
     def _is_bare_class_decoration(self):
