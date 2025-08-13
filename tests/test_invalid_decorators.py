@@ -128,7 +128,7 @@ def test_sandwiched_invalid_decorator():
         'Base3': 'public'
     }
     assert ValidMixedTypes._inheritance_info == expected_info
-    print("✅ Multiple inheritance with different access types works correctly!")
+    # Multiple inheritance with different access types works correctly!
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

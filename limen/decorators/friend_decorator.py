@@ -11,12 +11,8 @@ def friend(target_class: Type) -> Callable:
     def decorator(friend_entity: Union[Type, Callable]) -> Union[Type, Callable]:
         access_control = get_access_control_system()
         
-        # Debug output
-        print(f"Friend decorator applied to: {type(friend_entity)}")
-        
         if inspect.isclass(friend_entity):
             # Friend class
-            print("  -> Registering friend class")
             access_control.register_friend(target_class, friend_entity)
             access_control.emit_event('friendship_established', {
                 'target_class': target_class.__name__,
@@ -24,13 +20,11 @@ def friend(target_class: Type) -> Callable:
             })
         elif inspect.isfunction(friend_entity):
             # Check if this function will become a method (has 'self' or 'cls' parameter)
-            print("  -> Function detected")
             sig = inspect.signature(friend_entity)
             params = list(sig.parameters.keys())
             
             if params and params[0] in ('self', 'cls'):
                 # This is a method that will be bound to a class
-                print("  -> Marking as friend method")
                 friend_entity._limen_friend_target = target_class
                 friend_entity._limen_is_friend_method = True
                 
@@ -50,7 +44,6 @@ def friend(target_class: Type) -> Callable:
                 return descriptor
             else:
                 # Standalone function
-                print("  -> Registering friend function")
                 access_control.register_friend_function(target_class, friend_entity)
                 access_control.emit_event('friend_function_established', {
                     'target_class': target_class.__name__,
@@ -70,20 +63,10 @@ def friend(target_class: Type) -> Callable:
                 return descriptor
         elif hasattr(friend_entity, '_func_or_value') and hasattr(friend_entity, '_access_level'):
             # This is an access control descriptor (e.g., from @private)
-            print("  -> Access control descriptor detected")
             original_func = friend_entity._func_or_value
-            print(f"  -> Original function type: {type(original_func)}")
-            print(f"  -> Is function: {inspect.isfunction(original_func)}")
             if inspect.isfunction(original_func):
-                print(f"  -> Setting friend attributes on function {id(original_func)}")
                 original_func._limen_friend_target = target_class
                 original_func._limen_is_friend_method = True
-                print(f"  -> Set _limen_friend_target to {target_class}")
-                print("  -> Checking if attributes were set...")
-                print(f"  -> Has _limen_friend_target: {hasattr(original_func, '_limen_friend_target')}")
-                print(f"  -> Has _limen_is_friend_method: {hasattr(original_func, '_limen_is_friend_method')}")
-            else:
-                print(f"  -> WARNING: Original func is not a function, it's {type(original_func)}")
             # Don't emit event here, will be emitted when the descriptor's __set_name__ is called
         else:
             raise ValueError(f"@friend can only be applied to classes, functions, or access control descriptors, not {type(friend_entity)}")

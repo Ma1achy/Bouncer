@@ -44,9 +44,8 @@ def install_name_mangling_protection(cls: Type, private_methods: Set[str]) -> No
                     result = access_control.check_access(cls, original_name, AccessLevel.PRIVATE)
                 
                 if not result:
-                    from ..exceptions.limen_errors import PermissionDeniedError
-                    raise PermissionDeniedError(
-                        "private", "method", original_name
+                    raise PermissionError(
+                        f"Access denied to private method {original_name} via name mangling bypass"
                     )
         
         # Default behavior - use object.__getattribute__ to avoid conflicts

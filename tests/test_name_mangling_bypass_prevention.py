@@ -59,7 +59,7 @@ class TestNameManglingBypassPrevention:
         assert obj.internal_access() == "private_data"
 
         # Name mangling bypass should be blocked
-        with pytest.raises((PermissionDeniedError, PermissionError)):
+        with pytest.raises(PermissionDeniedError, match="Access denied to private method"):
             obj._TestClass__private_method()
 
     def test_explicit_private_method_basic_behavior(self):
