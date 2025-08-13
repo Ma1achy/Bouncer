@@ -59,7 +59,7 @@ class TestNameManglingBypassPrevention:
         assert obj.internal_access() == "private_data"
 
         # Name mangling bypass should be blocked
-        with pytest.raises(PermissionDeniedError, match="Access denied to private method"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to @private method"):
             obj._TestClass__private_method()
 
     def test_explicit_private_method_basic_behavior(self):
@@ -79,7 +79,7 @@ class TestNameManglingBypassPrevention:
         assert obj.internal_access() == "explicit_private"
 
         # Direct access should be blocked
-        with pytest.raises(PermissionDeniedError, match="Access denied to private method"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to @private method"):
             obj.private_method()
 
     def test_friend_access_works(self):
@@ -153,5 +153,5 @@ class TestNameManglingBypassPrevention:
         assert obj.internal_access() == "private_data"
 
         # Name mangling bypass should be blocked (the exact error message may vary)
-        with pytest.raises(PermissionDeniedError, match="Access denied to private method"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to @private method"):
             obj._TestClass__private_method()

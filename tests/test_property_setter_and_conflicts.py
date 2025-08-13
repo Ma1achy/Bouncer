@@ -68,10 +68,10 @@ class TestPropertySetterAccessControl:
         obj = TestClass()
         
         # External access should be blocked for both getter and setter
-        with pytest.raises(PermissionDeniedError, match="Access denied to private property"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to @private property"):
             _ = obj.secure_value
             
-        with pytest.raises(PermissionDeniedError, match="Access denied to private property"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to @private property"):
             obj.secure_value = "hacked"
     
     def test_protected_property_setter_inheritance(self):
@@ -106,7 +106,7 @@ class TestPropertySetterAccessControl:
         assert obj.access_family_value() == "derived"
         
         # External access should be blocked
-        with pytest.raises(PermissionDeniedError, match="Access denied to protected property"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to @protected property"):
             _ = obj.family_value
 
 

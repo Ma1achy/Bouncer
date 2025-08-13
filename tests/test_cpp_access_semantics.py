@@ -47,7 +47,7 @@ class TestPrivateAccessSemantics:
         unrelated_obj = Unrelated()
         
         # External access should be blocked
-        with pytest.raises(PermissionDeniedError, match="Access denied to private method"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to @private method"):
             base_obj.private_method()
     
     def test_private_static_method_inheritance_blocked(self, sample_classes):
@@ -110,7 +110,7 @@ class TestProtectedAccessSemantics:
         base_obj = Base()
         
         # External access should be blocked
-        with pytest.raises(PermissionDeniedError, match="Access denied to protected method"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to @protected method"):
             base_obj.protected_method()
     
     def test_protected_unrelated_class_blocked(self, sample_classes):
@@ -122,7 +122,7 @@ class TestProtectedAccessSemantics:
         unrelated_obj = Unrelated()
         
         # Unrelated class should not be able to access protected methods
-        with pytest.raises(PermissionDeniedError, match="Access denied to protected method"):
+        with pytest.raises(PermissionDeniedError, match="Access denied to @protected method"):
             base_obj.protected_method()
 
 

@@ -65,7 +65,7 @@ class Base:
 
 obj = Base()
 obj.public_method()  # Works - public access
-# obj._private_method()  # PermissionError - private access
+# obj._private_method()  # PermissionDeniedError - private access
 ```
 
 #### @protected - Inheritance Hierarchy
@@ -85,7 +85,7 @@ class Derived(Base):
 
 obj = Derived()
 obj.foo()  # Works - calls protected method internally
-# obj._protected_method()  # PermissionError - external access blocked
+# obj._protected_method()  # PermissionDeniedError - external access blocked
 ```
 
 #### @public - Universal Access
@@ -133,14 +133,14 @@ class Derived(Base):
         protected_data = self._protected_method() # Inherited as protected
         
         # Cannot access private members from base
-        # private_data = self.__private_method()  # PermissionError
+        # private_data = self.__private_method()  # PermissionDeniedError
         
         return f"{public_data}, {protected_data}"
 
 obj = Derived()
 result = obj.test_access()          # Works internally
 external_public = obj.public_method()  # Works externally - public access
-# external_protected = obj._protected_method()  # PermissionError - protected
+# external_protected = obj._protected_method()  # PermissionDeniedError - protected
 ```
 
 #### Protected Inheritance
@@ -166,15 +166,15 @@ class Derived(Base):
         public_data = self.public_method()       # Now protected due to inheritance
         protected_data = self._protected_method() # Remains protected
         # Cannot access private members
-        # secret = self._private_method()        # PermissionError
+        # secret = self._private_method()        # PermissionDeniedError
         return f"{public_data}, {protected_data}"
 
 obj = Derived()
 result = obj.operation()       # Works internally
 
 # External access - all methods are now protected due to inheritance
-# obj.public_method()          # PermissionError - public became protected
-# obj._protected_method()      # PermissionError - protected remains protected
+# obj.public_method()          # PermissionDeniedError - public became protected
+# obj._protected_method()      # PermissionDeniedError - protected remains protected
 ```
 
 #### Private Inheritance
@@ -205,8 +205,8 @@ obj = Derived()
 result = obj.public_interface()       # Works - controlled access
 
 # External access blocked - all inherited methods are now private
-# obj.public_method()                 # PermissionError - public became private
-# obj._protected_method()             # PermissionError - protected became private
+# obj.public_method()                 # PermissionDeniedError - public became private
+# obj._protected_method()             # PermissionDeniedError - protected became private
 ```
 
 #### Inheritance Summary
@@ -258,8 +258,8 @@ obj = Derived()
 result = obj.public_interface()       # Works - controlled access
 
 # External access follows inheritance rules
-# obj.method_a()                      # PermissionError - protected inheritance
-# obj.method_b()                      # PermissionError - private inheritance
+# obj.method_a()                      # PermissionDeniedError - protected inheritance
+# obj.method_b()                      # PermissionDeniedError - private inheritance
 ```
 
 ### Friend Relationships with Inheritance
@@ -290,7 +290,7 @@ derived_obj = Derived()
 result = helper.access_target(derived_obj)  # Works - friend relationship preserved
 
 # Regular external access blocked
-# derived_obj._protected_method()           # PermissionError - protected access
+# derived_obj._protected_method()           # PermissionDeniedError - protected access
 ```
 
 \n</details><details>\n<summary><strong>Implicit Access Control</strong></summary>## Implicit Access Control
@@ -339,9 +339,9 @@ result = obj.test_access()  # Works - internal access
 
 # External access controlled by inheritance rules
 # Protected inheritance converts public methods to protected
-obj.public_method()         # PermissionError - public became protected
-obj._protected_method()     # PermissionError - protected method
-obj._explicitly_public()   # PermissionError - explicit public became protected
+obj.public_method()         # PermissionDeniedError - public became protected
+obj._protected_method()     # PermissionDeniedError - protected method
+obj._explicitly_public()   # PermissionDeniedError - explicit public became protected
 ```
 
 ### Manual Application
@@ -366,8 +366,8 @@ apply_implicit_access_control(Base)
 
 obj = Base()
 obj.public_method()      # Works - public access
-# obj._protected_method()  # PermissionError - protected access
-# obj.__private_method()   # PermissionError - private access (name mangled)
+# obj._protected_method()  # PermissionDeniedError - protected access
+# obj.__private_method()   # PermissionDeniedError - private access (name mangled)
 ```
 
 ### Explicit Override of Implicit Rules
@@ -391,8 +391,8 @@ class Derived(Base):
 obj = Derived()
 
 # Explicit decorators override naming conventions
-# obj.normal_name_but_private()    # PermissionError - explicitly private
-obj._underscore_but_public()       # PermissionError - but protected inheritance affects it
+# obj.normal_name_but_private()    # PermissionDeniedError - explicitly private
+obj._underscore_but_public()       # PermissionDeniedError - but protected inheritance affects it
 ```
 
 \n</details><details>\n<summary><strong>Friend Relationships</strong></summary>## Friend Relationships
@@ -438,7 +438,7 @@ friend_b.inspect_target(target)  # Multiple friends work
 # Regular class cannot access private members
 class Regular:
     def try_access(self, target):
-        # PermissionError - not a friend
+        # PermissionDeniedError - not a friend
         return target._protected_method()
 ```
 
@@ -470,7 +470,7 @@ def friend_function_b(target):
 
 def regular_function(target):
     """Regular function - no friend access"""
-    # PermissionError - cannot access private methods
+    # PermissionDeniedError - cannot access private methods
     return target._private_method()
 
 # Usage
@@ -478,7 +478,7 @@ target = Target()
 
 friend_function_a(target)   # Friend function works
 friend_function_b(target)   # Another friend function works
-# regular_function(target)  # PermissionError
+# regular_function(target)  # PermissionDeniedError
 ```
 
 ### Friend Descriptors
@@ -577,8 +577,8 @@ derived.inherited_operation(target)
 helper.internal_operation(target)
 
 # Direct access to protected/private friend methods blocked
-# helper.protected_access(target)  # PermissionError
-# helper.private_access(target)    # PermissionError
+# helper.protected_access(target)  # PermissionDeniedError
+# helper.private_access(target)    # PermissionDeniedError
 ```
 
 ### Staticmethod and Classmethod with Access Modifiers
@@ -626,8 +626,8 @@ derived.use_protected_static(target)
 helper.internal_class_operation(target)
 
 # Direct access blocked
-# Helper.protected_static_helper(target)  # PermissionError
-# Helper.private_class_helper(target)     # PermissionError
+# Helper.protected_static_helper(target)  # PermissionDeniedError
+# Helper.private_class_helper(target)     # PermissionDeniedError
 ```
 
 \n</details><details>\n<summary><strong>Security Features</strong></summary>## Security Features
@@ -660,8 +660,8 @@ result = obj.public_access()  # "secret data"
 # Direct access blocked (AttributeError)
 # obj.__private_method()  # AttributeError: no attribute '__private_method'
 
-# Name mangling bypass blocked (PermissionError)  
-# obj._SecureClass__private_method()  # PermissionError: Access denied to private method
+# Name mangling bypass blocked (PermissionDeniedError)  
+# obj._SecureClass__private_method()  # PermissionDeniedError: Access denied to private method
 ```
 
 #### Protection for Explicit @private Decorators
@@ -688,11 +688,11 @@ obj = SecureClass()
 # Internal access works
 result = obj.public_access()  # "secret data, also secret"
 
-# Direct access blocked (PermissionError)
-# obj.regular_private()  # PermissionError: Access denied to private method
+# Direct access blocked (PermissionDeniedError)
+# obj.regular_private()  # PermissionDeniedError: Access denied to private method
 
-# Name mangling bypass blocked (PermissionError) 
-# obj._SecureClass__private_method()  # PermissionError: Access denied to private method
+# Name mangling bypass blocked (PermissionDeniedError) 
+# obj._SecureClass__private_method()  # PermissionDeniedError: Access denied to private method
 
 # Manual mangling attempts fail (AttributeError)
 # obj._SecureClass__regular_private()  # AttributeError: no such attribute
@@ -731,10 +731,10 @@ result = processor.process(store)  # Works - friend access allowed
 # Unauthorized access still blocked for both
 class UnauthorizedClass:
     def hack(self, store):
-        return store._DataStore__private_data()  # PermissionError
+        return store._DataStore__private_data()  # PermissionDeniedError
 
 unauthorized = UnauthorizedClass()
-# unauthorized.hack(store)  # PermissionError: Access denied
+# unauthorized.hack(store)  # PermissionDeniedError: Access denied
 ```
 
 This security feature ensures that Limen's access control cannot be circumvented through Python's name mangling, providing true encapsulation and security for your private methods.
@@ -781,7 +781,7 @@ class Derived(Base):
     
     def try_modify_value(self, new_value):
         # Cannot use private setter
-        # self.value = new_value  # PermissionError
+        # self.value = new_value  # PermissionDeniedError
         pass
 
 obj1 = Base("item1", 100)
@@ -797,7 +797,7 @@ print(obj2.check_value())
 obj1.update_value(50)
 
 # External access to protected property
-# print(obj1.value)  # PermissionError
+# print(obj1.value)  # PermissionDeniedError
 ```
 
 ### Friend Access to Properties
@@ -845,8 +845,8 @@ obj = Base()
 
 # Normal enforcement
 try:
-    obj._private_method()  # PermissionError
-except PermissionError:
+    obj._private_method()  # PermissionDeniedError
+except PermissionDeniedError:
     print("Access blocked")
 
 # Disable enforcement (useful for testing)
@@ -856,7 +856,7 @@ print(f"Access allowed: {result}")
 
 # Re-enable enforcement
 enable_enforcement()
-# obj.secret_method()  # PermissionError again
+# obj.secret_method()  # PermissionDeniedError again
 
 # Check enforcement status
 print(f"Enforcement enabled: {is_enforcement_enabled()}")

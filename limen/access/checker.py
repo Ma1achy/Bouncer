@@ -38,6 +38,34 @@ class AccessChecker:
         if caller_class == target_class:
             return True
         
+        # Special case for inheritance: if the caller is a subclass of target_class,
+        # and we're accessing a private method, check the call context more carefully
+        if (caller_class and target_class and 
+            issubclass(caller_class, target_class) and 
+            access_level == AccessLevel.PRIVATE):
+            
+            # Look at the stack to see if we're in a context where the target class method
+            # is currently executing. This allows private method calls from within inheritance
+            # scenarios like super().__init__() but blocks direct external calls.
+            stack = self._stack_inspector._get_caller_stack()
+            
+            # Check if any frame in the stack is executing a method from the target class
+            for frame_info in stack:
+                if self._stack_inspector._is_internal_frame(frame_info):
+                    continue
+                    
+                frame_locals = frame_info.frame.f_locals
+                if 'self' in frame_locals:
+                    method_name = frame_info.function
+                    
+                    # Check if this method belongs to target_class specifically
+                    if (hasattr(target_class, method_name) and 
+                        method_name in target_class.__dict__):
+                        return True
+            
+            # If no target_class method found in stack, block access
+            return False
+        
         # Check if this is inheritance access (caller is derived from target)
         if caller_class and target_class and issubclass(caller_class, target_class):
             inheritance_type = self._inheritance_analyzer.get_inheritance_type(caller_class, target_class)

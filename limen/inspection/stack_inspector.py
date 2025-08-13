@@ -26,6 +26,10 @@ class StackInspector:
         except ImportError:
             return None
     
+    def _get_caller_stack(self):
+        """Get the call stack for analysis"""
+        return inspect.stack()
+    
     def get_caller_info(self) -> CallerInfo:
         """Get caller class and method from stack"""
         stack = inspect.stack()

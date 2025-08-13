@@ -35,13 +35,26 @@ def install_name_mangling_protection(cls: Type, private_methods: Set[str]) -> No
                 stack_inspector = StackInspector()
                 caller_info = stack_inspector.get_caller_info()
                 
+                # The method owner class is determined by the mangled name
+                # _ClassName__method means the method belongs to ClassName
+                method_owner_class = self.__class__
+                
+                # Find the actual class that owns this method by checking the MRO
+                for mro_class in self.__class__.__mro__:
+                    if mro_class.__name__ in name:
+                        # Check if this class matches the mangled name pattern
+                        expected_prefix = f'_{mro_class.__name__}__'
+                        if name.startswith(expected_prefix):
+                            method_owner_class = mro_class
+                            break
+                
                 # Check if access should be allowed
                 if hasattr(access_control, '_access_checker'):
                     result = access_control._access_checker.can_access(
-                        cls, original_name, AccessLevel.PRIVATE, caller_info, self.__class__
+                        method_owner_class, original_name, AccessLevel.PRIVATE, caller_info, self.__class__
                     )
                 else:
-                    result = access_control.check_access(cls, original_name, AccessLevel.PRIVATE)
+                    result = access_control.check_access(method_owner_class, original_name, AccessLevel.PRIVATE)
                 
                 if not result:
                     raise PermissionError(
